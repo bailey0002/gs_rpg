@@ -17,9 +17,9 @@ const CLASS_LIBRARY = {
     baseStats: { phy: 4, int: 2, def: 4 },
     baseHp: 14,
     images: [
-      { id: 's1', name: 'Iron Guardian', file: 'character-images/sentinel/s1.jpg' },
-      { id: 's2', name: 'Steel Warden', file: 'character-images/sentinel/s2.jpg' },
-      { id: 's3', name: 'Bastion Prime', file: 'character-images/sentinel/s3.jpg' },
+      { id: 's1', name: 'Iron Guardian', file: '/character-images/sentinel/s1.jpg' },
+      { id: 's2', name: 'Steel Warden', file: '/character-images/sentinel/s2.jpg' },
+      { id: 's3', name: 'Bastion Prime', file: '/character-images/sentinel/s3.jpg' },
     ],
   },
   cleric: {
@@ -30,8 +30,8 @@ const CLASS_LIBRARY = {
     baseStats: { phy: 2, int: 5, def: 2 },
     baseHp: 10,
     images: [
-      { id: 'c1', name: 'Void Priestess', file: 'character-images/cleric/c1.jpg' },
-      { id: 'c2', name: 'Star Mender', file: 'character-images/cleric/c2.jpg' },
+      { id: 'c1', name: 'Void Priestess', file: '/character-images/cleric/c1.jpg' },
+      { id: 'c2', name: 'Star Mender', file: '/character-images/cleric/c2.jpg' },
     ],
   },
   stalker: {
@@ -42,10 +42,10 @@ const CLASS_LIBRARY = {
     baseStats: { phy: 4, int: 3, def: 2 },
     baseHp: 10,
     images: [
-      { id: 'st1', name: 'Crimson Shadow', file: 'character-images/stalker/st1.jpg' },
-      { id: 'st2', name: 'Night Phantom', file: 'character-images/stalker/st2.jpg' },
-      { id: 'st3', name: 'Abyss Walker', file: 'character-images/stalker/st3.jpg' },
-      { id: 'st4', name: 'Eclipse Blade', file: 'character-images/stalker/st4.jpg' },
+      { id: 'st1', name: 'Crimson Shadow', file: '/character-images/stalker/st1.jpg' },
+      { id: 'st2', name: 'Night Phantom', file: '/character-images/stalker/st2.jpg' },
+      { id: 'st3', name: 'Abyss Walker', file: '/character-images/stalker/st3.jpg' },
+      { id: 'st4', name: 'Eclipse Blade', file: '/character-images/stalker/st4.jpg' },
     ],
   },
   vanguard: {
@@ -56,8 +56,8 @@ const CLASS_LIBRARY = {
     baseStats: { phy: 3, int: 4, def: 3 },
     baseHp: 11,
     images: [
-      { id: 'v1', name: 'Storm Striker', file: 'character-images/vanguard/v1.jpg' },
-      { id: 'v2', name: 'Thunder Lance', file: 'character-images/vanguard/v2.jpg' },
+      { id: 'v1', name: 'Storm Striker', file: '/character-images/vanguard/v1.jpg' },
+      { id: 'v2', name: 'Thunder Lance', file: '/character-images/vanguard/v2.jpg' },
     ],
   },
   forger: {
@@ -68,8 +68,8 @@ const CLASS_LIBRARY = {
     baseStats: { phy: 5, int: 3, def: 3 },
     baseHp: 13,
     images: [
-      { id: 'f1', name: 'Iron Smith', file: 'character-images/forger/f1.jpg' },
-      { id: 'f2', name: 'Anvil Lord', file: 'character-images/forger/f2.jpg' },
+      { id: 'f1', name: 'Iron Smith', file: '/character-images/forger/f1.jpg' },
+      { id: 'f2', name: 'Anvil Lord', file: '/character-images/forger/f2.jpg' },
     ],
   },
   oracle: {
@@ -80,8 +80,8 @@ const CLASS_LIBRARY = {
     baseStats: { phy: 2, int: 5, def: 2 },
     baseHp: 9,
     images: [
-      { id: 'o1', name: 'Fate Weaver', file: 'character-images/oracle/o1.jpg' },
-      { id: 'o2', name: 'Void Seer', file: 'character-images/oracle/o2.jpg' },
+      { id: 'o1', name: 'Fate Weaver', file: '/character-images/oracle/01.jpg' },
+      { id: 'o2', name: 'Void Seer', file: '/character-images/oracle/02.jpg' },
     ],
   },
 };
