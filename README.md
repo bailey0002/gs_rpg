@@ -1,16 +1,24 @@
-# Grey Stratum v1.0
+# Grey Stratum v1.1
 
-A sci-fi text RPG with character persistence, evolution, and provenance tracking.
+Sci-fi text RPG with visual character creator and quest system.
+
+## New in v1.1: Character Creator
+
+- **Visual character builder** with SVG-based layered assets
+- Pick class, gender, face, helmet, shoulders, weapon
+- Customize armor colors, accent, visor, skin tone
+- Choose background scene
+- Randomize button for quick generation
+- **Exports PNG** portrait to character card
 
 ## Features
 
-- **6 Character Classes**: Space Knight, Tech Runner, Vanguard, Medic, Scout, Engineer
-- **Full Quest**: "The Silent Station" - ~15-20 branching story nodes
-- **Skill Checks**: PHY/INT/DEF stats with d6 + stat vs difficulty
-- **Combat System**: Turn-based resolution with HP tracking
-- **Character Persistence**: Saved to localStorage
-- **Provenance Logging**: All major events recorded to character history
-- **Evolution Ready**: XP system with level thresholds
+- 6 character classes with unique stats
+- Full branching quest: "The Silent Station"
+- Skill checks (PHY/INT vs difficulty)
+- Turn-based combat
+- XP and provenance tracking
+- localStorage persistence
 
 ## Quick Start
 
@@ -19,51 +27,45 @@ npm install
 npm start
 ```
 
-Opens at http://localhost:3000
+## Deploy to Azure
 
-## Deploy to Azure Static Web Apps
+Push to GitHub → Azure Static Web Apps auto-deploys.
 
-1. Push this folder to GitHub
-2. Azure Portal → Create Static Web App
-3. Connect to your GitHub repo
-4. Build settings:
-   - App location: `/`
-   - Output location: `build`
-5. Deploy!
+Build settings:
+- App location: `/`
+- Output: `build`
 
-## Game Flow
+## Character Creator Flow
 
-1. **Create Character** - Pick class, name your character
-2. **Start Mission** - Play through "The Silent Station"
-3. **Make Choices** - Branch the story with your decisions
-4. **Pass Checks** - Roll dice for skill challenges
-5. **Win Combat** - Fight enemies with PHY vs DEF
-6. **Earn XP** - Build toward evolution
-7. **Track History** - Provenance logs all major events
+1. Select class (determines base stats)
+2. Choose gender and face type
+3. Pick helmet, shoulders, weapon
+4. Customize colors (armor, accent, visor, skin)
+5. Select background scene
+6. Enter name → CREATE
 
-## Character Classes
+The generated portrait becomes your character card image.
 
-| Class | PHY | INT | DEF | HP | Specialty |
-|-------|-----|-----|-----|----|----|
-| Space Knight | 4 | 2 | 3 | 12 | Balanced |
-| Tech Runner | 2 | 5 | 2 | 10 | Hacking |
-| Vanguard | 5 | 2 | 4 | 14 | Tank |
-| Medic | 3 | 4 | 2 | 11 | Healing |
-| Scout | 3 | 3 | 3 | 10 | Stealth |
-| Engineer | 2 | 5 | 2 | 10 | Tech |
+## Classes
 
-## Next Development
+| Class | PHY | INT | DEF | HP |
+|-------|-----|-----|-----|----|
+| Space Knight | 4 | 2 | 3 | 12 |
+| Tech Runner | 2 | 5 | 2 | 10 |
+| Vanguard | 5 | 2 | 4 | 14 |
+| Medic | 3 | 4 | 2 | 11 |
+| Scout | 3 | 3 | 3 | 10 |
+| Engineer | 2 | 5 | 2 | 10 |
 
-- [ ] More quests
-- [ ] Evolution UI (level-up choices)
-- [ ] Inventory management
-- [ ] Trading system
-- [ ] Backend persistence (Cosmos DB)
-- [ ] Multiplayer
+## Asset System
 
-## Tech Stack
+Characters are built from layered SVG components:
+- Base body (class + gender specific)
+- Face (3 variants per gender)
+- Helmet (6 options)
+- Shoulders (5 options)
+- Weapon (6 options)
+- Background (5 scenes)
+- Color palettes for customization
 
-- React 18
-- CSS-in-JS
-- localStorage for persistence
-- Google Fonts (Orbitron, Rajdhani, Share Tech Mono)
+All rendering happens client-side. PNG export via Canvas API.
