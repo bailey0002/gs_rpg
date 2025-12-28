@@ -236,9 +236,17 @@ function CharacterCreator({ onComplete, onCancel }) {
   };
   
   const getPortraitUrl = (classId, index) => {
-    const letterMap = { sentinel: 's', voidStalker: 'v', oracle: 'o', vanguard: 'g', forger: 'f', cleric: 'c' };
-    const letter = letterMap[classId] || classId[0].toLowerCase();
-    return `/character-images/${letter}${index}.jpg`;
+    // Maps to: /character-images/{folder}/{prefix}{index}.jpg
+    const folderMap = {
+      sentinel: { folder: 'sentinel', prefix: 's' },
+      voidStalker: { folder: 'stalker', prefix: 'st' },
+      oracle: { folder: 'oracle', prefix: '0' },
+      vanguard: { folder: 'vanguard', prefix: 'v' },
+      forger: { folder: 'forger', prefix: 'f' },
+      cleric: { folder: 'cleric', prefix: 'c' }
+    };
+    const mapping = folderMap[classId] || { folder: classId, prefix: '' };
+    return `/character-images/${mapping.folder}/${mapping.prefix}${index}.jpg`;
   };
   
   return (
@@ -475,9 +483,17 @@ function createCharacter(name, classId, portraitIndex) {
   const classData = CLASS_LIBRARY[classId];
   const derived = calculateDerived(classData.stats.str, classData.stats.thm, classData.stats.rsv, classData.stats.agi);
   const now = new Date().toISOString();
-  const letterMap = { sentinel: 's', voidStalker: 'v', oracle: 'o', vanguard: 'g', forger: 'f', cleric: 'c' };
-  const letter = letterMap[classId] || classId[0].toLowerCase();
-  const portraitUrl = `/character-images/${letter}${portraitIndex}.jpg`;
+  // Maps to: /character-images/{folder}/{prefix}{index}.jpg
+  const folderMap = {
+    sentinel: { folder: 'sentinel', prefix: 's' },
+    voidStalker: { folder: 'stalker', prefix: 'st' },
+    oracle: { folder: 'oracle', prefix: '0' },
+    vanguard: { folder: 'vanguard', prefix: 'v' },
+    forger: { folder: 'forger', prefix: 'f' },
+    cleric: { folder: 'cleric', prefix: 'c' }
+  };
+  const mapping = folderMap[classId] || { folder: classId, prefix: '' };
+  const portraitUrl = `/character-images/${mapping.folder}/${mapping.prefix}${portraitIndex}.jpg`;
   
   return {
     id: generateId(), name, classId, version: '1.0', portraitUrl,
