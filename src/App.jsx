@@ -236,8 +236,9 @@ function CharacterCreator({ onComplete, onCancel }) {
   };
   
   const getPortraitUrl = (classId, index) => {
-    const folder = CLASS_LIBRARY[classId]?.portraitFolder || classId;
-    return `/character-images/${folder}/0${index}.jpg`;
+    const letterMap = { sentinel: 's', voidStalker: 'v', oracle: 'o', vanguard: 'g', forger: 'f', cleric: 'c' };
+    const letter = letterMap[classId] || classId[0].toLowerCase();
+    return `/character-images/${letter}${index}.jpg`;
   };
   
   return (
@@ -474,7 +475,9 @@ function createCharacter(name, classId, portraitIndex) {
   const classData = CLASS_LIBRARY[classId];
   const derived = calculateDerived(classData.stats.str, classData.stats.thm, classData.stats.rsv, classData.stats.agi);
   const now = new Date().toISOString();
-  const portraitUrl = `/character-images/${classData.portraitFolder}/0${portraitIndex}.jpg`;
+  const letterMap = { sentinel: 's', voidStalker: 'v', oracle: 'o', vanguard: 'g', forger: 'f', cleric: 'c' };
+  const letter = letterMap[classId] || classId[0].toLowerCase();
+  const portraitUrl = `/character-images/${letter}${portraitIndex}.jpg`;
   
   return {
     id: generateId(), name, classId, version: '1.0', portraitUrl,
