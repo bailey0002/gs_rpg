@@ -140,12 +140,14 @@ export const getClassImages = (classId) => {
 
 /**
  * Create a character from class selection
+ * Includes provenance log for TCP card tracking
  */
 export const createCharacterFromClass = (classId, name, selectedImageId) => {
   const cls = CLASS_LIBRARY[classId];
   if (!cls) return null;
 
   const selectedImage = cls.images.find(img => img.id === selectedImageId) || cls.images[0];
+  const creationDate = new Date().toISOString();
 
   return {
     id: `char-${Date.now()}`,
@@ -164,7 +166,61 @@ export const createCharacterFromClass = (classId, name, selectedImageId) => {
     level: 1,
     abilities: [...cls.abilities],
     version: '1.0',
-    createdAt: new Date().toISOString(),
+    createdAt: creationDate,
+    
+    // TCP Card Provenance - tracks character history for trading
+    provenanceLog: [
+      {
+        event: 'created',
+        date: creationDate,
+        details: {
+          classId: cls.id,
+          className: cls.name,
+          portraitId: selectedImageId,
+          portraitName: selectedImage.name,
+          initialStats: { ...cls.baseStats },
+          initialHp: cls.baseHp,
+          initialMana: cls.baseMana,
+        }
+      }
+    ],
+  };
+};
+
+/**
+ * Add a provenance event to a character's log
+ * Use for level ups, major choices, trades, etc.
+ */
+export const addProvenanceEvent = (character, event, details = {}) => {
+  if (!character || !character.provenanceLog) return character;
+  
+  return {
+    ...character,
+    provenanceLog: [
+      ...character.provenanceLog,
+      {
+        event,
+        date: new Date().toISOString(),
+        details,
+      }
+    ]
+  };
+};
+
+/**
+ * Get a summary of character provenance for display
+ */
+export const getProvenanceSummary = (character) => {
+  if (!character?.provenanceLog) return null;
+  
+  const log = character.provenanceLog;
+  return {
+    totalEvents: log.length,
+    createdAt: log[0]?.date || character.createdAt,
+    lastEvent: log[log.length - 1],
+    levelUps: log.filter(e => e.event === 'level-up').length,
+    majorChoices: log.filter(e => e.event === 'major-choice').length,
+    trades: log.filter(e => e.event === 'traded').length,
   };
 };
 
