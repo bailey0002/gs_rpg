@@ -1723,14 +1723,42 @@ body {
    ======================================== */
 
 .menu-screen {
+  position: relative;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: 
-    radial-gradient(ellipse at center, rgba(0, 240, 255, 0.05) 0%, transparent 50%),
-    var(--bg-deep);
+  overflow: hidden;
+}
+
+/* Video Background */
+.menu-video-bg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  object-fit: cover;
+}
+
+/* Overlay - ADJUST THIS OPACITY VALUE (0.0 to 1.0) */
+.menu-video-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(10, 10, 15, 0.6); /* <-- Change 0.6 to adjust darkness */
+  /* Options: 0.4 = lighter, 0.6 = medium, 0.8 = darker */
+}
+
+/* Content container (sits above video) */
+.menu-content {
+  position: relative;
+  z-index: 2;
   text-align: center;
   padding: 2rem;
 }

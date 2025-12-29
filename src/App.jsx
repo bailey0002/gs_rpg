@@ -188,10 +188,24 @@ const App = () => {
 
       {screen === 'menu' && (
         <div className="menu-screen">
-          <h1>GREY STRATUM</h1>
-          <div className="menu-buttons">
-            <button onClick={() => setScreen('creator')}>NEW GAME</button>
-            {loadGame() && <button onClick={() => { setGameState(loadGame()); setScreen('game'); }}>CONTINUE</button>}
+          {/* Video Background */}
+          <video
+            className="menu-video-bg"
+            autoPlay
+            loop
+            muted
+            playsInline
+            src={`/videos/bg-${Math.random() < 0.5 ? '1' : '2'}.mp4`}
+          />
+          <div className="menu-video-overlay" />
+          
+          {/* Content */}
+          <div className="menu-content">
+            <h1>GREY STRATUM</h1>
+            <div className="menu-buttons">
+              <button onClick={() => setScreen('creator')}>NEW GAME</button>
+              {loadGame() && <button onClick={() => { setGameState(loadGame()); setScreen('game'); }}>CONTINUE</button>}
+            </div>
           </div>
         </div>
       )}
