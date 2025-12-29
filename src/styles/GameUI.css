@@ -67,6 +67,7 @@ body {
   inset: 0;
   z-index: 0;
   overflow: hidden;
+  pointer-events: none;
 }
 
 .stars {
@@ -2180,3 +2181,4 @@ body {
   background: var(--green);
   box-shadow: 0 0 6px var(--green);
 }
+
