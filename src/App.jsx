@@ -1,647 +1,315 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 
 // =============================================================================
-// CLASS DEFINITIONS (Grok Classes with STRATUM stats)
+// SVG ASSET COMPONENTS (Simplified for cleaner code)
 // =============================================================================
+
+const createSVGCharacter = (config) => {
+  const { colors } = config;
+  
+  const backgrounds = {
+    'corridor': `<defs><linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#1a1a2e"/><stop offset="100%" style="stop-color:#0a0a15"/></linearGradient></defs><rect width="320" height="400" fill="url(#bg)"/><path d="M0 50 L80 100 L80 350 L0 400" stroke="${colors.accent}" stroke-width="1" fill="none" opacity="0.3"/><path d="M320 50 L240 100 L240 350 L320 400" stroke="${colors.accent}" stroke-width="1" fill="none" opacity="0.3"/><ellipse cx="100" cy="380" rx="30" ry="8" fill="${colors.accent}" opacity="0.2"/><ellipse cx="220" cy="380" rx="30" ry="8" fill="${colors.accent}" opacity="0.2"/>`,
+    'station': `<defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#12122a"/><stop offset="100%" style="stop-color:#1a0a1a"/></linearGradient></defs><rect width="320" height="400" fill="url(#bg)"/><rect x="20" y="30" width="80" height="60" rx="5" fill="#000010" stroke="${colors.accent}" stroke-width="1" opacity="0.5"/><circle cx="45" cy="55" r="3" fill="${colors.accent}" opacity="0.3"/><rect x="250" y="100" width="50" height="80" fill="#1a1a30" stroke="${colors.accent}" stroke-width="1" opacity="0.4"/>`,
+    'space': `<rect width="320" height="400" fill="#050510"/><circle cx="30" cy="40" r="1" fill="white" opacity="0.8"/><circle cx="80" cy="70" r="1.5" fill="white" opacity="0.6"/><circle cx="150" cy="30" r="1" fill="white" opacity="0.9"/><circle cx="200" cy="60" r="1" fill="white" opacity="0.5"/><circle cx="280" cy="45" r="1.5" fill="white" opacity="0.7"/><circle cx="50" cy="120" r="1" fill="white" opacity="0.4"/><circle cx="290" cy="150" r="1" fill="white" opacity="0.6"/><circle cx="20" cy="200" r="1" fill="${colors.accent}" opacity="0.8"/><ellipse cx="250" cy="80" rx="80" ry="50" fill="${colors.accent}" opacity="0.05"/>`,
+    'planet': `<defs><linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#1a0a2e"/><stop offset="60%" style="stop-color:#2a1a3e"/><stop offset="100%" style="stop-color:#3a2520"/></linearGradient></defs><rect width="320" height="400" fill="url(#bg)"/><circle cx="260" cy="80" r="40" fill="#3a2a4a" opacity="0.6"/><ellipse cx="260" cy="80" rx="40" ry="8" fill="${colors.accent}" opacity="0.2"/><path d="M0 350 Q80 330 160 345 Q240 360 320 340 L320 400 L0 400 Z" fill="#2a1a1a" opacity="0.8"/>`,
+    'abstract': `<rect width="320" height="400" fill="#0a0a15"/><polygon points="0,0 100,0 50,80" fill="${colors.accent}" opacity="0.1"/><polygon points="320,400 220,400 270,320" fill="${colors.accent}" opacity="0.1"/><circle cx="280" cy="60" r="40" fill="${colors.accent}" opacity="0.05"/><path d="M0 200 L320 180" stroke="${colors.accent}" stroke-width="1" opacity="0.2"/>`
+  };
+
+  const bodies = {
+    'space-knight': { male: `<rect x="145" y="180" width="30" height="25" fill="${colors.skin}"/><path d="M100 205 L105 320 L215 320 L220 205 Q160 195 100 205" fill="${colors.undersuit}"/><path d="M105 210 L110 300 L210 300 L215 210 Q160 200 105 210" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="2"/><circle cx="160" cy="240" r="8" fill="${colors.accent}"/><ellipse cx="95" cy="215" rx="25" ry="15" fill="${colors.primary}"/><ellipse cx="225" cy="215" rx="25" ry="15" fill="${colors.primary}"/>`, female: `<rect x="148" y="182" width="24" height="23" fill="${colors.skin}"/><path d="M108 205 L112 315 L208 315 L212 205 Q160 195 108 205" fill="${colors.undersuit}"/><path d="M112 210 L116 295 L204 295 L208 210 Q160 200 112 210" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="2"/><circle cx="160" cy="238" r="6" fill="${colors.accent}"/><ellipse cx="100" cy="212" rx="22" ry="13" fill="${colors.primary}"/><ellipse cx="220" cy="212" rx="22" ry="13" fill="${colors.primary}"/>` },
+    'tech-runner': { male: `<rect x="147" y="182" width="26" height="23" fill="${colors.skin}"/><path d="M115 205 L118 315 L202 315 L205 205 Q160 198 115 205" fill="${colors.undersuit}"/><path d="M118 208 L120 300 L200 300 L202 208 Q160 202 118 208" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="1"/><path d="M130 220 L130 290 M190 220 L190 290" stroke="${colors.accent}" stroke-width="2" opacity="0.7"/><ellipse cx="105" cy="210" rx="18" ry="12" fill="${colors.primary}"/><ellipse cx="215" cy="210" rx="18" ry="12" fill="${colors.primary}"/>`, female: `<rect x="150" y="184" width="20" height="21" fill="${colors.skin}"/><path d="M120 205 L122 310 L198 310 L200 205 Q160 198 120 205" fill="${colors.undersuit}"/><path d="M122 208 L124 295 L196 295 L198 208 Q160 202 122 208" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="1"/><ellipse cx="110" cy="208" rx="16" ry="10" fill="${colors.primary}"/><ellipse cx="210" cy="208" rx="16" ry="10" fill="${colors.primary}"/>` },
+    'vanguard': { male: `<rect x="143" y="178" width="34" height="27" fill="${colors.skin}"/><path d="M90 205 L95 325 L225 325 L230 205 Q160 192 90 205" fill="${colors.undersuit}"/><path d="M95 208 L100 310 L220 310 L225 208 Q160 195 95 208" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="3"/><rect x="150" y="225" width="20" height="50" fill="${colors.accent}" opacity="0.6"/><ellipse cx="85" cy="215" rx="30" ry="18" fill="${colors.primary}"/><ellipse cx="235" cy="215" rx="30" ry="18" fill="${colors.primary}"/>`, female: `<rect x="146" y="180" width="28" height="25" fill="${colors.skin}"/><path d="M95 205 L100 320 L220 320 L225 205 Q160 195 95 205" fill="${colors.undersuit}"/><path d="M100 208 L105 305 L215 305 L220 208 Q160 198 100 208" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="3"/><ellipse cx="90" cy="212" rx="26" ry="15" fill="${colors.primary}"/><ellipse cx="230" cy="212" rx="26" ry="15" fill="${colors.primary}"/>` },
+    'medic': { male: `<rect x="147" y="182" width="26" height="23" fill="${colors.skin}"/><path d="M112 205 L115 315 L205 315 L208 205 Q160 198 112 205" fill="${colors.undersuit}"/><path d="M115 208 L118 300 L202 300 L205 208 Q160 202 115 208" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="2"/><rect x="152" y="230" width="16" height="40" fill="${colors.accent}"/><rect x="145" y="242" width="30" height="16" fill="${colors.accent}"/><ellipse cx="102" cy="210" rx="20" ry="12" fill="${colors.primary}"/><ellipse cx="218" cy="210" rx="20" ry="12" fill="${colors.primary}"/>`, female: `<rect x="150" y="184" width="20" height="21" fill="${colors.skin}"/><path d="M118 205 L120 310 L200 310 L202 205 Q160 198 118 205" fill="${colors.undersuit}"/><path d="M120 208 L122 295 L198 295 L200 208 Q160 202 120 208" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="2"/><rect x="154" y="232" width="12" height="35" fill="${colors.accent}"/><rect x="148" y="243" width="24" height="13" fill="${colors.accent}"/><ellipse cx="108" cy="208" rx="18" ry="10" fill="${colors.primary}"/><ellipse cx="212" cy="208" rx="18" ry="10" fill="${colors.primary}"/>` },
+    'scout': { male: `<rect x="148" y="183" width="24" height="22" fill="${colors.skin}"/><path d="M118 205 L120 312 L200 312 L202 205 Q160 199 118 205" fill="${colors.undersuit}"/><path d="M120 207 L122 298 L198 298 L200 207 Q160 202 120 207" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="1" stroke-dasharray="4,2"/><ellipse cx="108" cy="208" rx="17" ry="11" fill="${colors.primary}"/><ellipse cx="212" cy="208" rx="17" ry="11" fill="${colors.primary}"/>`, female: `<rect x="151" y="185" width="18" height="20" fill="${colors.skin}"/><path d="M122 205 L124 308 L196 308 L198 205 Q160 199 122 205" fill="${colors.undersuit}"/><path d="M124 207 L126 294 L194 294 L196 207 Q160 202 124 207" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="1" stroke-dasharray="4,2"/><ellipse cx="112" cy="206" rx="15" ry="9" fill="${colors.primary}"/><ellipse cx="208" cy="206" rx="15" ry="9" fill="${colors.primary}"/>` },
+    'engineer': { male: `<rect x="147" y="182" width="26" height="23" fill="${colors.skin}"/><path d="M115 205 L118 315 L202 315 L205 205 Q160 198 115 205" fill="${colors.undersuit}"/><path d="M118 208 L120 300 L200 300 L202 208 Q160 202 118 208" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="2"/><path d="M125 215 L125 290 M195 215 L195 290 M125 250 L195 250" stroke="${colors.accent}" stroke-width="3"/><ellipse cx="105" cy="210" rx="18" ry="12" fill="${colors.primary}"/><ellipse cx="215" cy="210" rx="18" ry="12" fill="${colors.primary}"/>`, female: `<rect x="150" y="184" width="20" height="21" fill="${colors.skin}"/><path d="M120 205 L122 310 L198 310 L200 205 Q160 198 120 205" fill="${colors.undersuit}"/><path d="M122 208 L124 295 L196 295 L198 208 Q160 202 122 208" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="2"/><path d="M130 215 L130 285 M190 215 L190 285" stroke="${colors.accent}" stroke-width="3"/><ellipse cx="110" cy="208" rx="16" ry="10" fill="${colors.primary}"/><ellipse cx="210" cy="208" rx="16" ry="10" fill="${colors.primary}"/>` }
+  };
+
+  const faces = {
+    male: {
+      'face-1': `<ellipse cx="160" cy="120" rx="45" ry="55" fill="${colors.skin}"/><ellipse cx="145" cy="110" rx="8" ry="5" fill="${colors.eyes}"/><ellipse cx="175" cy="110" rx="8" ry="5" fill="${colors.eyes}"/><path d="M155 130 L165 130" stroke="${colors.skinDark}" stroke-width="2"/><path d="M148 145 Q160 152 172 145" stroke="${colors.skinDark}" stroke-width="2" fill="none"/>`,
+      'face-2': `<ellipse cx="160" cy="120" rx="43" ry="52" fill="${colors.skin}"/><rect x="135" y="105" width="18" height="8" rx="2" fill="${colors.eyes}"/><rect x="167" y="105" width="18" height="8" rx="2" fill="${colors.eyes}"/><path d="M155 128 L165 128" stroke="${colors.skinDark}" stroke-width="3"/><path d="M175 95 L185 125" stroke="${colors.skinDark}" stroke-width="2" opacity="0.5"/>`,
+      'face-3': `<ellipse cx="160" cy="118" rx="47" ry="58" fill="${colors.skin}"/><ellipse cx="143" cy="108" rx="10" ry="6" fill="${colors.eyes}"/><ellipse cx="177" cy="108" rx="10" ry="6" fill="${colors.eyes}"/><path d="M152 130 L168 130" stroke="${colors.skinDark}" stroke-width="2"/><ellipse cx="160" cy="155" rx="25" ry="15" fill="${colors.skinDark}" opacity="0.3"/>`
+    },
+    female: {
+      'face-1': `<ellipse cx="160" cy="118" rx="42" ry="52" fill="${colors.skin}"/><ellipse cx="146" cy="108" rx="9" ry="6" fill="${colors.eyes}"/><ellipse cx="174" cy="108" rx="9" ry="6" fill="${colors.eyes}"/><path d="M156 128 L164 128" stroke="${colors.skinDark}" stroke-width="2"/><path d="M150 145 Q160 150 170 145" stroke="${colors.skinDark}" stroke-width="2" fill="none"/>`,
+      'face-2': `<ellipse cx="160" cy="116" rx="40" ry="50" fill="${colors.skin}"/><ellipse cx="147" cy="106" rx="8" ry="5" fill="${colors.eyes}"/><ellipse cx="173" cy="106" rx="8" ry="5" fill="${colors.eyes}"/><path d="M157 125 L163 125" stroke="${colors.skinDark}" stroke-width="2"/><circle cx="175" cy="130" r="2" fill="${colors.skinDark}"/>`,
+      'face-3': `<ellipse cx="160" cy="117" rx="41" ry="51" fill="${colors.skin}"/><path d="M140 105 L152 108 L140 111 M180 105 L168 108 L180 111" stroke="${colors.eyes}" stroke-width="3" fill="none"/><path d="M156 126 L164 126" stroke="${colors.skinDark}" stroke-width="2"/><path d="M120 110 L135 110 M185 110 L200 110" stroke="${colors.accent}" stroke-width="2"/>`
+    }
+  };
+
+  const helmets = {
+    'none': '',
+    'visor': `<path d="M110 60 Q160 40 210 60 L215 130 Q160 145 105 130 Z" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="2"/><path d="M120 85 Q160 75 200 85 L198 125 Q160 135 122 125 Z" fill="${colors.visor}" opacity="0.8"/><path d="M125 90 Q160 82 195 90" stroke="${colors.visorShine}" stroke-width="2" opacity="0.5"/>`,
+    'full-helm': `<path d="M105 55 Q160 30 215 55 L220 160 Q160 175 100 160 Z" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="2"/><path d="M115 80 Q160 65 205 80 L203 140 Q160 155 117 140 Z" fill="${colors.visor}" opacity="0.9"/><rect x="108" y="145" width="20" height="8" fill="${colors.secondary}"/><rect x="192" y="145" width="20" height="8" fill="${colors.secondary}"/><path d="M160 35 L160 75" stroke="${colors.accent}" stroke-width="4"/>`,
+    'recon': `<path d="M112 58 Q160 42 208 58 L212 145 Q160 158 108 145 Z" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="1"/><ellipse cx="140" cy="100" rx="22" ry="18" fill="${colors.visor}" opacity="0.9"/><ellipse cx="180" cy="100" rx="22" ry="18" fill="${colors.visor}" opacity="0.9"/><circle cx="140" cy="100" r="8" fill="${colors.visorShine}" opacity="0.3"/><circle cx="180" cy="100" r="8" fill="${colors.visorShine}" opacity="0.3"/><path d="M205 70 L225 50" stroke="${colors.accent}" stroke-width="2"/><circle cx="228" cy="48" r="4" fill="${colors.accent}"/>`,
+    'heavy': `<path d="M95 50 Q160 25 225 50 L230 165 Q160 185 90 165 Z" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="3"/><path d="M110 85 Q160 70 210 85 L208 135 Q160 148 112 135 Z" fill="${colors.visor}" opacity="0.85"/><path d="M95 100 L110 95 L112 140 L95 145 Z" fill="${colors.secondary}"/><path d="M225 100 L210 95 L208 140 L225 145 Z" fill="${colors.secondary}"/><path d="M140 30 L160 20 L180 30 L160 40 Z" fill="${colors.accent}"/>`,
+    'tech': `<path d="M115 60 Q160 45 205 60 L208 150 Q160 162 112 150 Z" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="1"/><path d="M125 90 Q160 80 195 90 L193 130 Q160 140 127 130 Z" fill="${colors.visor}" opacity="0.9"/><rect x="130" y="95" width="25" height="3" fill="${colors.accent}" opacity="0.7"/><rect x="165" y="95" width="25" height="3" fill="${colors.accent}" opacity="0.7"/><rect x="100" y="90" width="15" height="30" rx="3" fill="${colors.secondary}"/><rect x="205" y="90" width="15" height="30" rx="3" fill="${colors.secondary}"/><circle cx="107" cy="100" r="3" fill="${colors.accent}"/><circle cx="213" cy="100" r="3" fill="${colors.accent}"/>`
+  };
+
+  const shoulders = {
+    'none': '',
+    'light': `<ellipse cx="85" cy="215" rx="28" ry="16" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="1"/><ellipse cx="235" cy="215" rx="28" ry="16" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="1"/>`,
+    'heavy': `<path d="M55 200 L75 190 L115 200 L115 240 L75 250 L55 240 Z" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="2"/><path d="M265 200 L245 190 L205 200 L205 240 L245 250 L265 240 Z" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="2"/>`,
+    'asymmetric': `<path d="M50 195 L80 185 L115 200 L115 245 L70 255 L50 240 Z" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="2"/><circle cx="70" cy="220" r="8" fill="${colors.secondary}"/><ellipse cx="230" cy="215" rx="25" ry="14" fill="${colors.primary}"/>`,
+    'tech-pads': `<rect x="60" y="198" width="50" height="35" rx="5" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="1"/><rect x="210" y="198" width="50" height="35" rx="5" fill="${colors.primary}" stroke="${colors.accent}" stroke-width="1"/><rect x="68" y="206" width="12" height="12" fill="${colors.accent}" opacity="0.6"/><rect x="240" y="206" width="12" height="12" fill="${colors.accent}" opacity="0.6"/>`
+  };
+
+  const weapons = {
+    'none': '',
+    'blade': `<rect x="240" y="260" width="8" height="45" rx="2" fill="${colors.weaponHandle}"/><path d="M244 215 L244 260 L248 260 L248 215 L252 200 L240 200 Z" fill="${colors.weaponBlade}"/><rect x="238" y="255" width="12" height="8" rx="1" fill="${colors.accent}"/>`,
+    'pistol': `<rect x="235" y="275" width="35" height="18" rx="3" fill="${colors.weaponHandle}"/><rect x="265" y="268" width="20" height="12" rx="2" fill="${colors.weaponHandle}"/><rect x="282" y="270" width="8" height="8" fill="${colors.weaponBlade}"/><circle cx="250" cy="284" r="4" fill="${colors.accent}"/>`,
+    'rifle': `<rect x="70" y="250" width="12" height="55" rx="2" fill="${colors.weaponHandle}"/><rect x="65" y="240" width="22" height="20" rx="3" fill="${colors.weaponHandle}"/><rect x="60" y="230" width="32" height="15" rx="2" fill="${colors.weaponBlade}"/><rect x="55" y="233" width="8" height="9" fill="${colors.accent}"/>`,
+    'gauntlets': `<ellipse cx="70" cy="295" rx="18" ry="22" fill="${colors.weaponHandle}" stroke="${colors.accent}" stroke-width="2"/><ellipse cx="250" cy="295" rx="18" ry="22" fill="${colors.weaponHandle}" stroke="${colors.accent}" stroke-width="2"/><path d="M60 280 L55 270 M70 278 L70 265 M80 280 L85 270 M240 280 L235 270 M250 278 L250 265 M260 280 L265 270" stroke="${colors.weaponBlade}" stroke-width="3"/>`,
+    'tool': `<rect x="235" y="265" width="10" height="40" rx="2" fill="${colors.weaponHandle}"/><path d="M232 260 L248 260 L250 250 L245 240 L240 245 L235 240 L230 250 Z" fill="${colors.weaponBlade}"/><circle cx="240" cy="252" r="3" fill="${colors.accent}"/>`
+  };
+
+  const showFace = config.helmet === 'none' || config.helmet === 'visor';
+  
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 400" width="320" height="400">
+    ${backgrounds[config.background] || backgrounds.corridor}
+    ${bodies[config.class]?.[config.gender] || bodies['space-knight'].male}
+    ${showFace ? (faces[config.gender]?.[config.face] || faces.male['face-1']) : ''}
+    ${helmets[config.helmet] || ''}
+    ${shoulders[config.shoulders] || ''}
+    ${weapons[config.weapon] || ''}
+    <defs><radialGradient id="vignette" cx="50%" cy="50%" r="70%"><stop offset="60%" style="stop-color:transparent"/><stop offset="100%" style="stop-color:rgba(0,0,0,0.6)"/></radialGradient></defs>
+    <rect width="320" height="400" fill="url(#vignette)"/>
+  </svg>`;
+};
+
+// =============================================================================
+// COLOR PALETTES
+// =============================================================================
+
+const PALETTES = {
+  primary: [
+    { name: 'Slate', value: '#3a4a6a' },
+    { name: 'Gunmetal', value: '#4a4a5a' },
+    { name: 'Forest', value: '#3a5a4a' },
+    { name: 'Burgundy', value: '#5a3a4a' },
+    { name: 'Navy', value: '#2a3a5a' },
+    { name: 'Charcoal', value: '#3a3a3a' }
+  ],
+  accent: [
+    { name: 'Cyan', value: '#00f0ff' },
+    { name: 'Orange', value: '#ff8800' },
+    { name: 'Magenta', value: '#ff00aa' },
+    { name: 'Lime', value: '#88ff00' },
+    { name: 'Gold', value: '#ffcc00' },
+    { name: 'Red', value: '#ff3366' }
+  ],
+  visor: [
+    { name: 'Amber', value: '#ff8800' },
+    { name: 'Cyan', value: '#00ccff' },
+    { name: 'Red', value: '#ff2200' },
+    { name: 'Green', value: '#00ff66' }
+  ],
+  skin: [
+    { name: 'Light', value: '#f0d0b0' },
+    { name: 'Medium', value: '#d0a080' },
+    { name: 'Tan', value: '#c08060' },
+    { name: 'Brown', value: '#8b6040' },
+    { name: 'Dark', value: '#5a4030' }
+  ]
+};
 
 const CLASS_DEFS = {
-  sentinel: { 
-    name: 'Sentinel', 
-    stats: { str: 2, thm: 2, rsv: 4, agi: 2 }, 
-    derived: { ton: 12, ult: 8, mana: 6 },
-    hp: 12, 
-    traits: ['Bulwark', 'Guardian Sense'], 
-    shadeAffinity: 'white',
-    description: 'Protectors who stand between danger and the innocent.',
-    portraitFolder: 'sentinel',
-    portraitPrefix: 's',
-    portraitCount: 3
-  },
-  voidStalker: { 
-    name: 'Void Stalker', 
-    stats: { str: 3, thm: 2, rsv: 2, agi: 3 }, 
-    derived: { ton: 10, ult: 6, mana: 4 },
-    hp: 10, 
-    traits: ['Shadow Step', 'Lethal Strike'], 
-    shadeAffinity: 'black',
-    description: 'Assassins who embrace the darkness within.',
-    portraitFolder: 'stalker',
-    portraitPrefix: 'st',
-    portraitCount: 4
-  },
-  oracle: { 
-    name: 'Oracle', 
-    stats: { str: 1, thm: 4, rsv: 3, agi: 2 }, 
-    derived: { ton: 8, ult: 12, mana: 10 },
-    hp: 8, 
-    traits: ['Shade Sight', 'Prophecy'], 
-    shadeAffinity: 'grey',
-    description: 'Seers who read the threads of fate and Shade.',
-    portraitFolder: 'oracle',
-    portraitPrefix: '0',
-    portraitCount: 2
-  },
-  vanguard: { 
-    name: 'Vanguard', 
-    stats: { str: 4, thm: 1, rsv: 3, agi: 2 }, 
-    derived: { ton: 14, ult: 4, mana: 4 },
-    hp: 14, 
-    traits: ['Breach', 'Intimidate'], 
-    shadeAffinity: 'white',
-    description: 'Warriors who lead the charge and break the line.',
-    portraitFolder: 'vanguard',
-    portraitPrefix: 'v',
-    portraitCount: 2
-  },
-  forger: { 
-    name: 'Forger', 
-    stats: { str: 3, thm: 3, rsv: 2, agi: 2 }, 
-    derived: { ton: 11, ult: 9, mana: 6 },
-    hp: 11, 
-    traits: ['Craft', 'Reinforce'], 
-    shadeAffinity: 'grey',
-    description: 'Artisans who shape metal and mend machines.',
-    portraitFolder: 'forger',
-    portraitPrefix: 'f',
-    portraitCount: 2
-  },
-  cleric: { 
-    name: 'Cleric', 
-    stats: { str: 2, thm: 3, rsv: 4, agi: 1 }, 
-    derived: { ton: 10, ult: 10, mana: 8 },
-    hp: 10, 
-    traits: ['Mend', 'Sanctuary'], 
-    shadeAffinity: 'white',
-    description: 'Healers who preserve life in the depths.',
-    portraitFolder: 'cleric',
-    portraitPrefix: 'c',
-    portraitCount: 2
-  }
+  'space-knight': { name: 'Space Knight', stats: { phy: 4, int: 2, def: 3 }, hp: 12, gear: ['pulse-blade', 'standard-armor'], traits: [] },
+  'tech-runner': { name: 'Tech Runner', stats: { phy: 2, int: 5, def: 2 }, hp: 10, gear: ['hack-tool', 'light-vest'], traits: [] },
+  'vanguard': { name: 'Vanguard', stats: { phy: 5, int: 2, def: 4 }, hp: 14, gear: ['heavy-gauntlets', 'plated-armor'], traits: [] },
+  'medic': { name: 'Medic', stats: { phy: 3, int: 4, def: 2 }, hp: 11, gear: ['med-kit', 'sidearm'], traits: ['field-medicine'] },
+  'scout': { name: 'Scout', stats: { phy: 3, int: 3, def: 3 }, hp: 10, gear: ['scanner', 'combat-knife'], traits: ['eagle-eye'] },
+  'engineer': { name: 'Engineer', stats: { phy: 2, int: 5, def: 2 }, hp: 10, gear: ['repair-tool', 'drone-companion'], traits: ['jury-rig'] }
 };
 
 // =============================================================================
-// PORTRAIT HELPER
-// =============================================================================
-
-const getPortraitUrl = (classId, index) => {
-  const cls = CLASS_DEFS[classId];
-  if (!cls) return null;
-  return `/character-images/${cls.portraitFolder}/${cls.portraitPrefix}${index}.jpg`;
-};
-
-const getPortraitOptions = (classId) => {
-  const cls = CLASS_DEFS[classId];
-  if (!cls) return [];
-  return Array.from({ length: cls.portraitCount }, (_, i) => ({
-    index: i + 1,
-    url: getPortraitUrl(classId, i + 1)
-  }));
-};
-
-// =============================================================================
-// SHADE SYSTEM
-// =============================================================================
-
-const getShadeLabel = (shade) => {
-  if (shade >= 8) return { label: 'Luminous', color: '#ffffff' };
-  if (shade >= 5) return { label: 'Radiant', color: '#e0e0ff' };
-  if (shade >= 2) return { label: 'Light', color: '#a0a0e0' };
-  if (shade >= -1) return { label: 'Grey', color: '#808080' };
-  if (shade >= -4) return { label: 'Dim', color: '#606060' };
-  if (shade >= -7) return { label: 'Dark', color: '#404040' };
-  return { label: 'Void', color: '#1a1a1a' };
-};
-
-const ShadeBar = ({ shade }) => {
-  const { label, color } = getShadeLabel(shade);
-  const position = ((shade + 10) / 20) * 100;
-  
-  return (
-    <div className="shade-container">
-      <div className="shade-label">
-        <span>SHADE</span>
-        <span style={{ color }}>{label}</span>
-      </div>
-      <div className="shade-track">
-        <div className="shade-gradient" />
-        <div className="shade-marker" style={{ left: `${position}%` }} />
-      </div>
-      <div className="shade-ends">
-        <span>Void</span>
-        <span>Luminous</span>
-      </div>
-    </div>
-  );
-};
-
-// =============================================================================
-// ITEMS CATALOG
-// =============================================================================
-
-const ITEMS = {
-  'med-stim': { id: 'med-stim', name: 'Med-Stim', category: 'consumable', examineText: 'A pressurized injector filled with blue synth-fluid.', effect: { type: 'heal', amount: 8 } },
-  'ration-pack': { id: 'ration-pack', name: 'Ration Pack', category: 'consumable', examineText: 'Circuit-standard meal replacement.', effect: { type: 'heal', amount: 2 } },
-  'descent-manifest': { id: 'descent-manifest', name: 'Descent Manifest', category: 'lore', examineText: 'Six names before yours, all marked "RESOLVED."' },
-  'corso-debt-marker': { id: 'corso-debt-marker', name: 'Debt Marker', category: 'key', examineText: 'A digital token representing your debt to Corso.' }
-};
-
-// =============================================================================
-// ACT 1 STORY NODES
-// =============================================================================
-
-const STORY_NODES = {
-  // PROLOGUE
-  'prologue-tribunal': {
-    type: 'narrative',
-    location: 'THE SPIRE — TRIBUNAL CHAMBER',
-    text: `The Spire's light is absolute. It reveals everything—including guilt.
-
-Three Adjudicators sit above you, faces hidden behind mirrored masks. Your reflection stares back, fractured across their judgment.
-
-"Shade contamination," the central figure intones. "Unauthorized integration with proscribed technology. Penalty: Descent."
-
-You don't remember the crime. But the Shade coiled at the base of your skull pulses—it remembers something.
-
-The floor beneath you begins to descend.`,
-    visibleItems: [
-      { id: 'masks', name: 'Adjudicator\'s Masks', text: 'Perfect mirrors. You see yourself but not them. This is intentional.' },
-      { id: 'implant', name: 'The Shade Implant', text: 'A warmth behind your eyes. It feels... expectant.' }
-    ],
-    nextNodeId: 'prologue-response'
-  },
-
-  'prologue-response': {
-    type: 'choice',
-    location: 'THE SPIRE — TRIBUNAL CHAMBER',
-    text: 'The descent begins. You have one last moment to respond.',
-    choices: [
-      { id: 'accept', text: 'Accept in silence', shadeChange: 1, nextNodeId: 'prologue-descent', journalEntry: 'Submitted to judgment. They saw compliance; I felt calculation.' },
-      { id: 'demand', text: 'Demand explanation', shadeChange: 0, nextNodeId: 'prologue-demand', journalEntry: 'They fear what I carry. Even they don\'t fully understand it.' },
-      { id: 'threaten', text: 'Threaten retribution', shadeChange: -1, nextNodeId: 'prologue-descent', journalEntry: 'Made an enemy of the Spire. Good. Enemies are honest.' }
-    ]
-  },
-
-  'prologue-demand': {
-    type: 'narrative',
-    location: 'THE SPIRE — TRIBUNAL CHAMBER',
-    text: `"What evidence? What 'proscribed technology'?"
-
-The central Adjudicator pauses.
-
-"Your implant itself is the evidence. It should not exist."
-
-The words hang as the floor continues its descent.`,
-    nextNodeId: 'prologue-descent'
-  },
-
-  'prologue-descent': {
-    type: 'narrative',
-    location: 'DESCENT SHAFT',
-    text: `The platform descends. Light fades to amber, then rust, then darkness relieved only by your Shade's faint pulse.
-
-Hours pass. Or days.
-
-When the platform stops, you smell recycled air and machine oil.
-
-You've arrived in The Circuit.`,
-    nextNodeId: 'circuit-arrival'
-  },
-
-  // SCENE 1.1: ARRIVAL
-  'circuit-arrival': {
-    type: 'narrative',
-    location: 'THE CIRCUIT — TRANSIT HUB',
-    text: `The platform locks into a receiving bay. Red emergency lights.
-
-A figure waits—angular, patient. Their coat bears the sigil of the Broker's Guild: an open hand holding a closed eye.
-
-"Another one from above," they say. "I am Corso. I've been paid to receive you. By whom, I'm not permitted to say."
-
-They gesture to the hub beyond. "The Circuit runs on obligation. You now have one. To me."`,
-    visibleItems: [
-      { id: 'sigil', name: 'Corso\'s Guild Sigil', text: 'The Broker\'s Guild. They honor contracts—but only contracts.' },
-      { id: 'manifest', name: 'Discarded Manifest', text: 'Lists recent descents. Your name is seventh.', canTake: true, itemId: 'descent-manifest' }
-    ],
-    nextNodeId: 'corso-response'
-  },
-
-  'corso-response': {
-    type: 'choice',
-    location: 'THE CIRCUIT — TRANSIT HUB',
-    text: 'Corso waits for your response.',
-    choices: [
-      { id: 'grateful', text: '"Thank you. I\'ll repay this."', shadeChange: 1, nextNodeId: 'corso-grateful', consequence: { debt: 350 } },
-      { id: 'question', text: '"Who paid for this?"', shadeChange: 0, nextNodeId: 'corso-question' },
-      { id: 'refuse', text: '"I didn\'t ask for this debt."', shadeChange: -1, nextNodeId: 'corso-refuse', consequence: { debt: 350 } },
-      { id: 'oracle', text: '[ORACLE] Read Corso\'s Shade', classRequired: 'oracle', manaCost: 2, nextNodeId: 'corso-oracle' }
-    ]
-  },
-
-  'corso-grateful': {
-    type: 'narrative',
-    location: 'THE CIRCUIT — TRANSIT HUB',
-    text: `Corso nods. "Spoken correctly. Your debt is logged. 350 marks."
-
-They produce a small token—your debt marker.
-
-"The Hub is through there. Work is available for those who look."`,
-    addItem: 'corso-debt-marker',
-    nextNodeId: 'circuit-hub'
-  },
-
-  'corso-question': {
-    type: 'narrative',
-    location: 'THE CIRCUIT — TRANSIT HUB',
-    text: `"The Guild's discretion is absolute." Corso pauses. "But they used a Spire cipher. Someone above still cares if you live."
-
-Why would anyone in the Spire want you alive after casting you down?`,
-    addItem: 'corso-debt-marker',
-    nextNodeId: 'circuit-hub'
-  },
-
-  'corso-refuse': {
-    type: 'narrative',
-    location: 'THE CIRCUIT — TRANSIT HUB',
-    text: `Corso's expression doesn't change. "The debt exists whether you acknowledge it or not."
-
-They lean closer.
-
-"Refuse, and I'll sell your location to the Spire Hunters instead."`,
-    addItem: 'corso-debt-marker',
-    nextNodeId: 'circuit-hub'
-  },
-
-  'corso-oracle': {
-    type: 'narrative',
-    location: 'THE CIRCUIT — TRANSIT HUB',
-    text: `Your Shade flickers. You see Corso's—pale grey, almost white. They were once like you. Cast down. They built themselves back through obligation.
-
-"You see it," Corso says quietly. "Good. Then you understand."
-
-There's something like kinship in their eyes now.`,
-    addItem: 'corso-debt-marker',
-    nextNodeId: 'circuit-hub'
-  },
-
-  // SCENE 1.2: THE HUB
-  'circuit-hub': {
-    type: 'choice',
-    location: 'THE CIRCUIT — TRADE HUB ALPHA',
-    text: `The Circuit is alive. Cargo drones hum overhead. Merchants hawk modified tech, food paste, information.
-
-A notice board catches your eye. Job postings. The way to earn marks and pay debts.
-
-Three paths diverge:
-EAST — The Fabrication Yards
-NORTH — The Data Temples
-WEST — The Descent Shafts`,
-    visibleItems: [
-      { id: 'board', name: 'Exchange Board', text: 'Labor: 15 marks/shift. Information: Variable.' },
-      { id: 'vendor', name: 'Street Vendor', text: 'Basic supplies available.' }
-    ],
-    choices: [
-      { id: 'escort', text: '[JOB] Cargo Security — 200 marks', nextNodeId: 'job-escort-start' },
-      { id: 'heist', text: '[JOB] Data Extraction — 150 marks', requirement: { stat: 'thm', min: 3 }, nextNodeId: 'job-heist-start' },
-      { id: 'collect', text: '[JOB] Debt Collection — 100 marks', requirement: { stat: 'str', min: 3 }, nextNodeId: 'job-collect-start' },
-      { id: 'package', text: '[JOB] Smuggle a Person — 300 marks', requirement: { stat: 'rsv', min: 3 }, nextNodeId: 'job-package-start' }
-    ]
-  },
-
-  // JOB: ESCORT
-  'job-escort-start': {
-    type: 'narrative',
-    location: 'FABRICATION YARDS — LOADING BAY',
-    text: `The cargo is sealed containers—medical supplies. Destination: a Midway clinic.
-
-Your fellow guards: Harrow (veteran) and Pell (young, nervous).
-
-Day one: uneventful.
-Day two: you hear them.`,
-    nextNodeId: 'escort-raiders'
-  },
-
-  'escort-raiders': {
-    type: 'choice',
-    location: 'MAINTENANCE CORRIDOR — DAY 2',
-    text: `Raiders. Murk-descended, by their patchwork gear.
-
-"Medical supplies," their leader calls. "We need them more than whatever clinic you're feeding. Give them up and walk away."`,
-    visibleItems: [
-      { id: 'leader', name: 'Raider Leader', text: 'Scarred, but not cruel. A child\'s drawing tucked in their belt.' },
-      { id: 'pell', name: 'Pell\'s Hands', text: 'Shaking. They\'ve never seen real violence.' }
-    ],
-    choices: [
-      { id: 'fight', text: 'Fight to protect the cargo', shadeChange: 2, nextNodeId: 'escort-combat' },
-      { id: 'negotiate', text: 'Negotiate a split', requirement: { stat: 'thm', min: 3 }, nextNodeId: 'escort-negotiate' },
-      { id: 'surrender', text: 'Let them take it', shadeChange: -1, nextNodeId: 'escort-surrender' },
-      { id: 'assassinate', text: '[VOID STALKER] Eliminate the leader', classRequired: 'voidStalker', shadeChange: -3, nextNodeId: 'escort-assassinate' },
-      { id: 'shield', text: '[SENTINEL] Shield Pell and hold', classRequired: 'sentinel', manaCost: 2, shadeChange: 3, nextNodeId: 'escort-sentinel' }
-    ]
-  },
-
-  'escort-combat': {
-    type: 'combat',
-    location: 'MAINTENANCE CORRIDOR',
-    text: 'You and Harrow move forward. The raiders are desperate but outmatched.',
-    enemy: { name: 'Murk Raiders (3)', hp: 15, str: 2, def: 1 },
-    victoryNodeId: 'escort-victory',
-    defeatNodeId: 'escort-defeat',
-    fleeNodeId: 'escort-surrender',
-    victoryXp: 25
-  },
-
-  'escort-victory': {
-    type: 'reward',
-    location: 'MAINTENANCE CORRIDOR — AFTERMATH',
-    text: `The raiders fall. Harrow wipes their blade. Pell stares at the bodies.
-
-The cargo is safe. But Pell's eyes have changed.`,
-    rewards: [{ type: 'marks', amount: 200 }, { type: 'xp', amount: 25 }],
-    nextNodeId: 'hub-return'
-  },
-
-  'escort-defeat': {
-    type: 'narrative',
-    location: 'MAINTENANCE CORRIDOR',
-    text: 'You fall. The raiders take everything. Harrow drags you back.',
-    nextNodeId: 'hub-return'
-  },
-
-  'escort-negotiate': {
-    type: 'narrative',
-    location: 'MAINTENANCE CORRIDOR',
-    text: `"Half the supplies. Everyone walks."
-
-The leader considers. Then nods.
-
-"Fair enough. We remember this."`,
-    rewards: [{ type: 'marks', amount: 100 }, { type: 'xp', amount: 20 }],
-    nextNodeId: 'hub-return'
-  },
-
-  'escort-surrender': {
-    type: 'narrative',
-    location: 'MAINTENANCE CORRIDOR',
-    text: `"Harrow, stand down. It's just cargo."
-
-The raiders take everything. Their leader nods—almost grateful.
-
-"We won't forget this."`,
-    consequence: { debt: 50 },
-    nextNodeId: 'hub-return'
-  },
-
-  'escort-assassinate': {
-    type: 'narrative',
-    location: 'MAINTENANCE CORRIDOR — SHADOWS',
-    text: `You slip into shadow. One precise strike.
-
-The others flee. Harrow stares at you.
-
-"Who are you?"`,
-    rewards: [{ type: 'marks', amount: 250 }, { type: 'xp', amount: 30 }],
-    nextNodeId: 'hub-return'
-  },
-
-  'escort-sentinel': {
-    type: 'narrative',
-    location: 'MAINTENANCE CORRIDOR — THE WALL',
-    text: `You activate Bulwark. Your Shade extends into a barrier.
-
-The raiders hesitate. This isn't a fight—it's a wall.
-
-One by one, they back away. No blood. Pell looks at you like you're something more.`,
-    rewards: [{ type: 'marks', amount: 200 }, { type: 'xp', amount: 30 }],
-    nextNodeId: 'hub-return'
-  },
-
-  // OTHER JOBS (PLACEHOLDERS)
-  'job-heist-start': { type: 'narrative', location: 'DATA TEMPLES', text: '[Data Extraction — Coming soon]\n\nThe Temple looms before you...', nextNodeId: 'hub-return' },
-  'job-collect-start': { type: 'narrative', location: 'DEBT DISTRICT', text: '[Debt Collection — Coming soon]\n\nThe address leads to a cramped hab-block...', nextNodeId: 'hub-return' },
-  'job-package-start': { type: 'narrative', location: 'ANONYMOUS MEET', text: '[Package — Coming soon]\n\nThe contact waits in shadows...', nextNodeId: 'hub-return' },
-
-  // HUB RETURN
-  'hub-return': {
-    type: 'narrative',
-    location: 'THE CIRCUIT — TRADE HUB ALPHA',
-    text: `You return to the Hub. The job is done.
-
-Corso finds you.
-
-"You've seen what the Circuit is. Labor, secrets, violence dressed in commerce."
-
-They lean closer.
-
-"Or you can go deeper. The Midway awaits."`,
-    nextNodeId: 'descent-decision'
-  },
-
-  // DESCENT DECISION
-  'descent-decision': {
-    type: 'choice',
-    location: 'THE CIRCUIT — DESCENT SHAFTS',
-    text: `The shafts plunge into darkness.
-
-Corso stands at the threshold.
-
-"I've met one person who came back from the Abyss. They couldn't speak anymore. But they smiled."
-
-Your Shade pulses. It wants to go down.`,
-    choices: [
-      { id: 'stay', text: 'Stay in the Circuit (End Act 1)', requirement: { marks: 350 }, nextNodeId: 'ending-survivor' },
-      { id: 'truth', text: '"I need to know what I am."', shadeChange: 1, nextNodeId: 'ending-descent' },
-      { id: 'vengeance', text: '"The Spire made a mistake."', shadeChange: -1, nextNodeId: 'ending-descent' }
-    ]
-  },
-
-  'ending-survivor': {
-    type: 'outcome',
-    location: 'THE CIRCUIT — YOUR NEW HOME',
-    text: `You transfer the marks. Corso nods.
-
-"Smart. Boring, but smart."
-
-You live in the Circuit for years. You never learn the truth. But you survive.
-
-Some descents end in survival.`,
-    outcome: 'early-ending',
-    xpAwarded: 50
-  },
-
-  'ending-descent': {
-    type: 'outcome',
-    location: 'DESCENT SHAFT',
-    text: `The elevator groans as it descends. Light fades.
-
-When it stops, you emerge into a cavern the size of a cathedral.
-
-Welcome to the Midway.
-
-ACT 1 COMPLETE — The Circuit`,
-    outcome: 'act-complete',
-    xpAwarded: 100
-  }
-};
-
-// =============================================================================
-// COMPONENTS: ECHO JOURNAL
-// =============================================================================
-
-const EchoJournal = ({ entries, insights, isOpen, onClose }) => {
-  const [tab, setTab] = useState('entries');
-  if (!isOpen) return null;
-  
-  return (
-    <div className="overlay">
-      <div className="panel">
-        <div className="panel-header">
-          <h2>◈ ECHO JOURNAL</h2>
-          <button onClick={onClose}>✕</button>
-        </div>
-        <div className="tabs">
-          <button className={tab === 'entries' ? 'active' : ''} onClick={() => setTab('entries')}>Entries ({entries.length})</button>
-          <button className={tab === 'insights' ? 'active' : ''} onClick={() => setTab('insights')}>Insights ({insights.length})</button>
-        </div>
-        <div className="panel-content">
-          {tab === 'entries' && (entries.length === 0 ? <p className="empty">Your journey has just begun...</p> : entries.map((e, i) => <div key={i} className="entry"><div className="entry-title">{e.title}</div><div className="entry-text">{e.text}</div></div>))}
-          {tab === 'insights' && (insights.length === 0 ? <p className="empty">Examine objects to gain insights...</p> : insights.map((e, i) => <div key={i} className="entry"><div className="entry-title">◆ {e.title}</div><div className="entry-text">{e.text}</div></div>))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// =============================================================================
-// COMPONENTS: VISIBLE ITEMS
-// =============================================================================
-
-const VisibleItems = ({ items, onTake }) => {
-  const [expanded, setExpanded] = useState(null);
-  if (!items?.length) return null;
-  
-  return (
-    <div className="visible-items">
-      <div className="vi-header">◇ VISIBLE</div>
-      {items.map(item => (
-        <div key={item.id} className="vi-item">
-          <button className="vi-name" onClick={() => setExpanded(expanded === item.id ? null : item.id)}>[{item.name}]</button>
-          {expanded === item.id && (
-            <div className="vi-detail">
-              <p>{item.text}</p>
-              {item.canTake && <button className="vi-take" onClick={() => onTake(item)}>+ Take</button>}
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-};
-
-// =============================================================================
-// COMPONENTS: INVENTORY
-// =============================================================================
-
-const InventoryPanel = ({ inventory, marks, debt, isOpen, onClose, onUse }) => {
-  const [selected, setSelected] = useState(null);
-  if (!isOpen) return null;
-  
-  return (
-    <div className="overlay">
-      <div className="panel">
-        <div className="panel-header">
-          <h2>◈ INVENTORY</h2>
-          <button onClick={onClose}>✕</button>
-        </div>
-        <div className="currency">
-          <span className="marks">◆ {marks} marks</span>
-          {debt > 0 && <span className="debt">◇ {debt} debt</span>}
-        </div>
-        <div className="panel-content">
-          {inventory.length === 0 ? <p className="empty">No items</p> : inventory.map((inv, i) => {
-            const item = ITEMS[inv.itemId];
-            if (!item) return null;
-            return (
-              <div key={i} className={`inv-item ${selected === i ? 'selected' : ''}`} onClick={() => setSelected(selected === i ? null : i)}>
-                <span className="inv-icon">{item.category === 'consumable' ? '◉' : '◆'}</span>
-                <span className="inv-name">{item.name}</span>
-                {inv.quantity > 1 && <span className="inv-qty">x{inv.quantity}</span>}
-              </div>
-            );
-          })}
-          {selected !== null && inventory[selected] && (
-            <div className="item-details">
-              <p>{ITEMS[inventory[selected].itemId]?.examineText}</p>
-              {ITEMS[inventory[selected].itemId]?.category === 'consumable' && <button onClick={() => onUse(inventory[selected].itemId)}>Use</button>}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// =============================================================================
-// CHARACTER CREATOR WITH GROK GALLERY
+// CHARACTER CREATOR COMPONENT
 // =============================================================================
 
 function CharacterCreator({ onComplete, onCancel }) {
-  const [selectedClass, setSelectedClass] = useState('sentinel');
-  const [selectedPortrait, setSelectedPortrait] = useState(1);
+  const [config, setConfig] = useState({
+    class: 'space-knight',
+    gender: 'male',
+    face: 'face-1',
+    helmet: 'visor',
+    shoulders: 'light',
+    weapon: 'blade',
+    background: 'corridor',
+    colors: {
+      primary: '#3a4a6a',
+      secondary: '#2a3a4a',
+      accent: '#00f0ff',
+      visor: '#ff8800',
+      visorShine: '#ffffff',
+      skin: '#f0d0b0',
+      skinDark: '#c0a080',
+      eyes: '#304050',
+      undersuit: '#1a1a2a',
+      weaponHandle: '#2a2a3a',
+      weaponBlade: '#a0b0c0'
+    }
+  });
   const [name, setName] = useState('');
-  const [imgError, setImgError] = useState({});
-
-  const cls = CLASS_DEFS[selectedClass];
-  const portraits = getPortraitOptions(selectedClass);
+  const [preview, setPreview] = useState('');
 
   useEffect(() => {
-    setSelectedPortrait(1);
-    setImgError({});
-  }, [selectedClass]);
+    const svg = createSVGCharacter(config);
+    const blob = new Blob([svg], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [config]);
 
-  const handleCreate = () => {
-    if (!name.trim()) return;
-    onComplete({ name: name.trim(), class: selectedClass, portraitUrl: getPortraitUrl(selectedClass, selectedPortrait), portraitIndex: selectedPortrait });
+  const updateConfig = (key, value) => setConfig(p => ({ ...p, [key]: value }));
+  const updateColor = (key, value) => setConfig(p => ({ ...p, colors: { ...p.colors, [key]: value } }));
+
+  const randomize = () => {
+    const rand = arr => arr[Math.floor(Math.random() * arr.length)];
+    setConfig(p => ({
+      ...p,
+      class: rand(Object.keys(CLASS_DEFS)),
+      gender: rand(['male', 'female']),
+      face: rand(['face-1', 'face-2', 'face-3']),
+      helmet: rand(['none', 'visor', 'full-helm', 'recon', 'heavy', 'tech']),
+      shoulders: rand(['none', 'light', 'heavy', 'asymmetric', 'tech-pads']),
+      weapon: rand(['none', 'blade', 'pistol', 'rifle', 'gauntlets', 'tool']),
+      background: rand(['corridor', 'station', 'space', 'planet', 'abstract']),
+      colors: {
+        ...p.colors,
+        primary: rand(PALETTES.primary).value,
+        accent: rand(PALETTES.accent).value,
+        visor: rand(PALETTES.visor).value,
+        skin: rand(PALETTES.skin).value
+      }
+    }));
   };
+
+  const exportPNG = async () => {
+    return new Promise(resolve => {
+      const svg = createSVGCharacter(config);
+      const canvas = document.createElement('canvas');
+      canvas.width = 320;
+      canvas.height = 400;
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+    });
+  };
+
+  const handleCreate = async () => {
+    if (!name.trim()) return;
+    const portraitUrl = await exportPNG();
+    onComplete({ name: name.trim(), class: config.class, portraitUrl, config });
+  };
+
+  const cls = CLASS_DEFS[config.class];
 
   return (
     <div className="creator">
       <div className="creator-header">
         <h1>CREATE OPERATIVE</h1>
-        <button onClick={onCancel}>✕</button>
+        <button onClick={onCancel}>âœ•</button>
       </div>
       <div className="creator-body">
         <div className="preview-panel">
           <div className="preview-frame">
-            <img src={getPortraitUrl(selectedClass, selectedPortrait)} alt={cls.name} onError={(e) => { e.target.src = ''; e.target.alt = '?'; }} />
+            {preview && <img src={preview} alt="Preview" />}
           </div>
           <div className="preview-stats">
-            <span>STR {cls.stats.str}</span>
-            <span>THM {cls.stats.thm}</span>
-            <span>RSV {cls.stats.rsv}</span>
-            <span>AGI {cls.stats.agi}</span>
+            <span>PHY {cls.stats.phy}</span>
+            <span>INT {cls.stats.int}</span>
+            <span>DEF {cls.stats.def}</span>
+            <span>HP {cls.hp}</span>
           </div>
-          <div className="class-traits">{cls.traits.map((t, i) => <span key={i} className="trait">{t}</span>)}</div>
+          <button className="rand-btn" onClick={randomize}>ðŸŽ² RANDOMIZE</button>
         </div>
         <div className="options-panel">
-          <div className="opt-section">CLASS</div>
-          <div className="class-grid">
-            {Object.entries(CLASS_DEFS).map(([id, c]) => (
-              <button key={id} className={`class-btn ${selectedClass === id ? 'selected' : ''}`} onClick={() => setSelectedClass(id)}>
-                <span className="class-name">{c.name}</span>
-                <span className={`class-affinity ${c.shadeAffinity}`}>{c.shadeAffinity === 'white' ? '◇' : c.shadeAffinity === 'black' ? '◆' : '◈'}</span>
-              </button>
-            ))}
+          <div className="opt-group">
+            <label>CLASS</label>
+            <select value={config.class} onChange={e => updateConfig('class', e.target.value)}>
+              {Object.entries(CLASS_DEFS).map(([id, c]) => <option key={id} value={id}>{c.name}</option>)}
+            </select>
           </div>
-          <div className="opt-section">PORTRAIT</div>
-          <div className="portrait-grid">
-            {portraits.map((p) => (
-              <button key={p.index} className={`portrait-btn ${selectedPortrait === p.index ? 'selected' : ''}`} onClick={() => setSelectedPortrait(p.index)}>
-                {!imgError[p.index] ? <img src={p.url} alt={`${p.index}`} onError={() => setImgError(prev => ({ ...prev, [p.index]: true }))} /> : <div className="portrait-placeholder">{p.index}</div>}
-              </button>
-            ))}
+          <div className="opt-group">
+            <label>GENDER</label>
+            <select value={config.gender} onChange={e => updateConfig('gender', e.target.value)}>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
           </div>
-          <div className="opt-section">DESCRIPTION</div>
-          <p className="class-desc">{cls.description}</p>
+          <div className="opt-section">APPEARANCE</div>
+          <div className="opt-group">
+            <label>FACE</label>
+            <select value={config.face} onChange={e => updateConfig('face', e.target.value)}>
+              <option value="face-1">Type 1</option>
+              <option value="face-2">Type 2</option>
+              <option value="face-3">Type 3</option>
+            </select>
+          </div>
+          <div className="opt-group">
+            <label>HELMET</label>
+            <select value={config.helmet} onChange={e => updateConfig('helmet', e.target.value)}>
+              <option value="none">None</option>
+              <option value="visor">Visor</option>
+              <option value="full-helm">Full Helm</option>
+              <option value="recon">Recon</option>
+              <option value="heavy">Heavy</option>
+              <option value="tech">Tech</option>
+            </select>
+          </div>
+          <div className="opt-group">
+            <label>SHOULDERS</label>
+            <select value={config.shoulders} onChange={e => updateConfig('shoulders', e.target.value)}>
+              <option value="none">None</option>
+              <option value="light">Light</option>
+              <option value="heavy">Heavy</option>
+              <option value="asymmetric">Asymmetric</option>
+              <option value="tech-pads">Tech</option>
+            </select>
+          </div>
+          <div className="opt-group">
+            <label>WEAPON</label>
+            <select value={config.weapon} onChange={e => updateConfig('weapon', e.target.value)}>
+              <option value="none">None</option>
+              <option value="blade">Blade</option>
+              <option value="pistol">Pistol</option>
+              <option value="rifle">Rifle</option>
+              <option value="gauntlets">Gauntlets</option>
+              <option value="tool">Tool</option>
+            </select>
+          </div>
+          <div className="opt-section">COLORS</div>
+          <div className="color-row">
+            <label>ARMOR</label>
+            <div className="swatches">{PALETTES.primary.map(c => <button key={c.value} className={`swatch ${config.colors.primary === c.value ? 'sel' : ''}`} style={{ background: c.value }} onClick={() => updateColor('primary', c.value)} />)}</div>
+          </div>
+          <div className="color-row">
+            <label>ACCENT</label>
+            <div className="swatches">{PALETTES.accent.map(c => <button key={c.value} className={`swatch ${config.colors.accent === c.value ? 'sel' : ''}`} style={{ background: c.value }} onClick={() => updateColor('accent', c.value)} />)}</div>
+          </div>
+          <div className="color-row">
+            <label>VISOR</label>
+            <div className="swatches">{PALETTES.visor.map(c => <button key={c.value} className={`swatch ${config.colors.visor === c.value ? 'sel' : ''}`} style={{ background: c.value }} onClick={() => updateColor('visor', c.value)} />)}</div>
+          </div>
+          <div className="color-row">
+            <label>SKIN</label>
+            <div className="swatches">{PALETTES.skin.map(c => <button key={c.value} className={`swatch ${config.colors.skin === c.value ? 'sel' : ''}`} style={{ background: c.value }} onClick={() => { updateColor('skin', c.value); updateColor('skinDark', c.value.replace(/[0-9a-f]{2}/gi, h => Math.max(0, parseInt(h, 16) - 40).toString(16).padStart(2, '0'))); }} />)}</div>
+          </div>
+          <div className="opt-section">BACKGROUND</div>
+          <div className="opt-group">
+            <label>SCENE</label>
+            <select value={config.background} onChange={e => updateConfig('background', e.target.value)}>
+              <option value="corridor">Corridor</option>
+              <option value="station">Station</option>
+              <option value="space">Space</option>
+              <option value="planet">Planet</option>
+              <option value="abstract">Abstract</option>
+            </select>
+          </div>
         </div>
       </div>
       <div className="creator-footer">
@@ -653,39 +321,112 @@ function CharacterCreator({ onComplete, onCancel }) {
 }
 
 // =============================================================================
+// QUEST DATA
+// =============================================================================
+
+const QUEST = {
+  nodes: {
+    'start': { type: 'narrative', location: 'SECTOR 7 â€” APPROACH', text: `Your shuttle cuts through debris surrounding Station Omega-7. Dark except for a blinking light.\n\nThirty years agoâ€”a xenobiology lab. Then silence.\n\nThree days ago: "EXPERIMENT VIABLE. AWAITING RETRIEVAL."\n\nYour mission: Find out why.`, nextNodeId: 'airlock' },
+    'airlock': { type: 'choice', location: 'STATION â€” AIRLOCK', text: `Stale air. Amber emergency lights. Scanner shows faint power signatures deeper in.\n\nMain corridor ahead. Maintenance shaft with fresh scrape marks to the left.\n\nMetal groans in the distance.`, choices: [
+      { id: 'a', text: 'Main corridor, weapon ready', nextNodeId: 'corridor-check' },
+      { id: 'b', text: 'Maintenance shaft', nextNodeId: 'shaft-check' },
+      { id: 'c', text: 'Scan for life signs', nextNodeId: 'scan-check' },
+      { id: 'd', text: 'Return to ship', nextNodeId: 'retreat' }
+    ]},
+    'corridor-check': { type: 'check', text: 'Advancing. Scraping from overhead vent. Something watching.\n\nCombat instincts engage.', checkType: 'phy', difficulty: 3, successNodeId: 'corridor-win', failureNodeId: 'corridor-ambush', successXp: 15 },
+    'corridor-win': { type: 'narrative', text: 'Spin and strike. Blade through grate as drone dropsâ€”claws miss. It sparks and dies.\n\nContinue forward.', nextNodeId: 'main-lab' },
+    'corridor-ambush': { type: 'combat', text: 'Too slow. Drone on your back, claws raking armor. Roll to throw it off.\n\nRed sensors. Feral.', enemy: { name: 'Feral Drone', hp: 6, phy: 2, def: 1 }, victoryNodeId: 'drone-win', defeatNodeId: 'defeat', fleeNodeId: 'main-lab', victoryXp: 25 },
+    'drone-win': { type: 'reward', text: 'Drone sparks out. Among parts: intact med-stim.', rewards: [{ type: 'item', itemId: 'med-stim' }], nextNodeId: 'main-lab' },
+    'shaft-check': { type: 'check', location: 'MAINTENANCE SHAFT', text: 'Tight space. Tally marks on walls. Junction boxâ€”wires rerouted.\n\nCan you trace the modification?', checkType: 'int', difficulty: 3, successNodeId: 'shaft-win', failureNodeId: 'shaft-fail', successXp: 20 },
+    'shaft-win': { type: 'narrative', text: 'All power routed to xenobiology lab. And you found a direct pathâ€”above the main lab. Drop in from above.', nextNodeId: 'lab-above' },
+    'shaft-fail': { type: 'narrative', text: 'Wiring too corrupted. Dead ends. Eventually opens to main corridor.', nextNodeId: 'main-lab' },
+    'scan-check': { type: 'check', text: 'Scanner sweeps corridor. Decades of ghosts to filter.\n\nTakes skill to get clear reading.', checkType: 'int', difficulty: 4, successNodeId: 'scan-win', failureNodeId: 'scan-fail', successXp: 15 },
+    'scan-win': { type: 'choice', text: 'Three signatures:\n\nâ€¢ Vent contactâ€”mechanical, erratic. Drone.\nâ€¢ Main labâ€”active cryo. Something cold.\nâ€¢ Secondary labâ€”organic. Alive.\n\nSomeone else is here.', choices: [
+      { id: 'a', text: 'Main lab carefully', nextNodeId: 'main-lab' },
+      { id: 'b', text: 'Investigate survivor', nextNodeId: 'survivor' },
+      { id: 'c', text: 'Clear drone first', nextNodeId: 'corridor-check' }
+    ]},
+    'scan-fail': { type: 'narrative', text: 'Static. No clear read. Old-fashioned way.', nextNodeId: 'airlock' },
+    'survivor': { type: 'choice', location: 'SECONDARY LAB', text: `Makeshift quarters. Cot, nutrient paste.\n\nGreyed woman, shock prod ready.\n\n"Thirty years containing it. Now they want it back?"\n\n"Cryo failing. When it wakes..." She shakes her head.`, choices: [
+      { id: 'a', text: '"What is it?"', nextNodeId: 'tanaka-info' },
+      { id: 'b', text: '"Help me destroy it."', nextNodeId: 'tanaka-ally' },
+      { id: 'c', text: 'Go to main lab', nextNodeId: 'main-lab' }
+    ]},
+    'tanaka-info': { type: 'narrative', text: `"Adaptive organism. Found dormant. Wasn't dormantâ€”waiting.\n\nWhen thawed, it integrated. Equipment. Researchers. I reached the bulkheads.\n\nThirty years keeping cryo running. Hours until it wakes. And it remembers everything it absorbed."`, nextNodeId: 'lab-choice' },
+    'tanaka-ally': { type: 'reward', text: `Hope in her eyes.\n\n"Overload reactorâ€”vaporize the lab."\n\nShe hands you a keycard. "Control room. I'll start the sequence."`, rewards: [{ type: 'item', itemId: 'keycard' }], nextNodeId: 'lab-choice' },
+    'main-lab': { type: 'choice', location: 'MAIN LAB â€” EXTERIOR', text: 'Through viewport: cryo pod failing. Condensation. Temperature climbing.\n\nDoor controls active.', choices: [
+      { id: 'a', text: 'Enter', nextNodeId: 'lab-interior' },
+      { id: 'b', text: 'Hack cryo remotely', nextNodeId: 'hack-check' }
+    ]},
+    'lab-choice': { type: 'choice', location: 'MAIN LAB â€” EXTERIOR', text: 'Cryo pod failing through viewport.', choices: [
+      { id: 'a', text: 'Enter and face it', nextNodeId: 'lab-interior' },
+      { id: 'b', text: 'Overload reactor', nextNodeId: 'reactor', requirement: { itemId: 'keycard' } },
+      { id: 'c', text: 'Hack cryo', nextNodeId: 'hack-check' }
+    ]},
+    'lab-above': { type: 'choice', location: 'MAIN LAB â€” CEILING', text: 'Through grate: cryo pod. Something pressing against glass. Testing.\n\nAlready awake. Waiting.', choices: [
+      { id: 'a', text: 'Surprise attack', nextNodeId: 'boss-adv' },
+      { id: 'b', text: 'Find another way', nextNodeId: 'lab-choice' }
+    ]},
+    'hack-check': { type: 'check', text: 'External panel. Reroute power to cryo. System fights backâ€”corrupted code, active resistance.', checkType: 'int', difficulty: 5, successNodeId: 'hack-win', failureNodeId: 'hack-fail', successXp: 25 },
+    'hack-win': { type: 'reward', text: 'Cryo stabilizes. Downloaded research logs too.', rewards: [{ type: 'xp', amount: 25 }, { type: 'item', itemId: 'data-chip' }], nextNodeId: 'lab-choice' },
+    'hack-fail': { type: 'narrative', text: 'System rejects. Klaxons. Cryo emergency shutdown.\n\nPod opening.', nextNodeId: 'lab-interior' },
+    'lab-interior': { type: 'narrative', location: 'MAIN LAB â€” INTERIOR', text: `Lab preserved. Equipment running.\n\nExcept the bodies.\n\nThree researchersâ€”part of the organism now. Fused with equipment, walls. Biomechanical roots from cryo pod.\n\nPod cracks.\n\nToo many limbs. Too many eyes. Absorbed faces.\n\n"NEW. NEW PATTERNS."`, nextNodeId: 'boss-fight' },
+    'reactor': { type: 'choice', location: 'ENGINEERING', text: 'Reactor hums. Enough for a century or instant vaporization.\n\nDisable safeties. Push critical. Three minutes.\n\nYour hand hovers.', choices: [
+      { id: 'a', text: 'Initiate overload', nextNodeId: 'victory-destroy' },
+      { id: 'b', text: 'Face it directly', nextNodeId: 'boss-fight' }
+    ]},
+    'boss-adv': { type: 'combat', location: 'MAIN LAB â€” SURPRISE', text: 'Drop, blade first. Strike through limb before it knows.\n\nThree-voiced scream.', enemy: { name: 'Amalgam (Wounded)', hp: 8, phy: 4, def: 1 }, victoryNodeId: 'victory-combat', defeatNodeId: 'defeat', victoryXp: 40 },
+    'boss-fight': { type: 'combat', location: 'MAIN LAB â€” CONFRONTATION', text: 'Creature flows toward you. Victims\' faces swim across surface.\n\nThirty years absorbing knowledge. It knows how to fight.\n\nSo do you.', enemy: { name: 'The Amalgam', hp: 12, phy: 4, def: 2 }, victoryNodeId: 'victory-combat', defeatNodeId: 'defeat', fleeNodeId: 'reactor', victoryXp: 50 },
+    'victory-combat': { type: 'outcome', location: 'AFTERMATH', text: 'Creature collapses. Stolen forms silent.\n\nGather salvageable data. Shuttle pulls away.\n\nYou did your job.\n\nMISSION COMPLETE', outcome: 'victory', xpAwarded: 50 },
+    'victory-destroy': { type: 'outcome', location: 'ESCAPE POD', text: 'Overload irreversible. Two minutes.\n\nThrough corridors, past the shambling thing, into pod. Doors seal as it reaches airlock.\n\nStation comes apart. White light. Vaporized.\n\nDr. Tanaka watches with peace.\n\n"Thank you."\n\nMISSION COMPLETE', outcome: 'victory', xpAwarded: 50 },
+    'defeat': { type: 'outcome', text: 'You fall. It looms.\n\n"NEW PATTERNS. THANK YOU."\n\nMISSION FAILED\n\nRescued by beacon. Creature escaped.', outcome: 'defeat', xpAwarded: 10 },
+    'retreat': { type: 'outcome', location: 'SHUTTLE', text: 'Something wrong. It waited thirty years. Can wait more.\n\nReturn to shuttle.\n\nPulling awayâ€”shape in viewport. Watching.\n\nIt waves.\n\nMISSION INCOMPLETE', outcome: 'retreat', xpAwarded: 5 }
+  }
+};
+
+// =============================================================================
 // GAME LOGIC
 // =============================================================================
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
-function createCharacter(name, classId, portraitUrl, portraitIndex) {
+function createCharacter(name, classId, portraitUrl) {
   const cls = CLASS_DEFS[classId];
+  const now = new Date().toISOString();
   return {
-    id: generateId(), name, class: classId, version: '2.0', portraitUrl, portraitIndex,
-    stats: { ...cls.stats }, derived: { ...cls.derived },
-    hp: { current: cls.hp, max: cls.hp },
-    mana: { current: cls.derived.mana, max: cls.derived.mana },
+    id: generateId(), name, class: classId, version: '1.0', portraitUrl,
+    stats: { ...cls.stats }, hp: { current: cls.hp, max: cls.hp },
     xp: { current: 0, toNextLevel: 100 }, level: 1,
-    traits: [...cls.traits]
+    traits: [...cls.traits], inventory: cls.gear.map(g => ({ itemId: g, quantity: 1 })),
+    provenance: [{ id: generateId(), timestamp: now, version: '1.0', eventType: 'created', description: 'Created' }],
+    questsCompleted: 0, enemiesDefeated: 0
   };
 }
+
+const doCheck = (char, type, diff) => {
+  const stat = char.stats[type];
+  const roll = Math.floor(Math.random() * 6) + 1;
+  const total = stat + roll;
+  const target = diff + 6;
+  return { stat, roll, total, target, success: total >= target };
+};
 
 const doCombat = (char, enemy) => {
   let pHp = char.hp.current, eHp = enemy.hp;
   const rounds = [];
   while (pHp > 0 && eHp > 0 && rounds.length < 10) {
     const pRoll = Math.floor(Math.random() * 6) + 1;
-    const pDmg = Math.max(0, char.stats.str + pRoll - (enemy.def || 1));
+    const pDmg = Math.max(0, char.stats.phy + pRoll - enemy.def);
     eHp -= pDmg;
     let eDmg = 0;
     if (eHp > 0) {
       const eRoll = Math.floor(Math.random() * 6) + 1;
-      eDmg = Math.max(0, (enemy.str || 2) + eRoll - Math.floor(char.derived.ton / 5));
+      eDmg = Math.max(0, enemy.phy + eRoll - char.stats.def);
       pHp -= eDmg;
     }
-    rounds.push({ pDmg, eDmg, pHp, eHp });
+    rounds.push({ pRoll, pDmg, eDmg, pHp, eHp });
   }
-  return { rounds, victory: eHp <= 0, pHp };
+  return { rounds, victory: eHp <= 0, pHp, dmgTaken: char.hp.current - pHp };
 };
 
 // =============================================================================
@@ -693,52 +434,137 @@ const doCombat = (char, enemy) => {
 // =============================================================================
 
 function QuestScreen({ character, setCharacter, onComplete }) {
-  const [nodeId, setNodeId] = useState('prologue-tribunal');
-  const [gameState, setGameState] = useState({ shade: 0, marks: 0, debt: 0, flags: {} });
-  const [inventory, setInventory] = useState([]);
-  const [journal, setJournal] = useState({ entries: [], insights: [] });
+  const [nodeId, setNodeId] = useState('start');
+  const [sysOut, setSysOut] = useState(null);
   const [combat, setCombat] = useState(null);
   const [busy, setBusy] = useState(false);
-  const [journalOpen, setJournalOpen] = useState(false);
-  const [inventoryOpen, setInventoryOpen] = useState(false);
+  const [history, setHistory] = useState([]); // Navigation history for BACK command
+  const [commandInput, setCommandInput] = useState('');
+  const [cmdResponse, setCmdResponse] = useState(null);
+  const [showInventory, setShowInventory] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
-  const node = STORY_NODES[nodeId];
+  const node = QUEST.nodes[nodeId];
 
-  const goTo = async (id) => {
+  // Navigation with history tracking
+  const goTo = async (id, addToHistory = true) => { 
+    setBusy(true); 
+    if (addToHistory && nodeId) {
+      setHistory(prev => [...prev.slice(-10), nodeId]); // Keep last 10 locations
+    }
+    await new Promise(r => setTimeout(r, 300)); 
+    setNodeId(id); 
+    setSysOut(null); 
+    setCombat(null); 
+    setCmdResponse(null);
+    setBusy(false); 
+  };
+
+  // Go back to previous location
+  const goBack = () => {
+    if (history.length > 0) {
+      const prevNode = history[history.length - 1];
+      setHistory(prev => prev.slice(0, -1));
+      goTo(prevNode, false);
+      return true;
+    }
+    return false;
+  };
+
+  // Command parser - classic adventure game style
+  const parseCommand = (input) => {
+    const cmd = input.trim().toLowerCase();
+    const words = cmd.split(/\s+/);
+    const verb = words[0];
+    const target = words.slice(1).join(' ');
+    
+    // Command aliases
+    const aliases = {
+      'l': 'look', 'examine': 'look', 'x': 'look',
+      'i': 'inventory', 'inv': 'inventory',
+      'b': 'back', 'go back': 'back', 'return': 'back',
+      'h': 'help', '?': 'help', 'commands': 'help',
+      'take': 'get', 'grab': 'get', 'pick': 'get',
+    };
+    
+    const action = aliases[verb] || verb;
+    
+    switch(action) {
+      case 'look':
+        if (!target) {
+          setCmdResponse({ 
+            type: 'look', 
+            text: `[LOCATION: ${node.location || 'Unknown'}]\n\n${node.text}\n\n${node.visibleItems?.length ? 'VISIBLE: ' + node.visibleItems.map(i => i.name).join(', ') : ''}` 
+          });
+        } else {
+          const item = node.visibleItems?.find(i => 
+            i.name.toLowerCase().includes(target) || i.id.toLowerCase().includes(target)
+          );
+          if (item) {
+            setCmdResponse({ type: 'examine', text: `[${item.name}]\n${item.text}` });
+          } else {
+            setCmdResponse({ type: 'error', text: `You don't see any "${target}" here.` });
+          }
+        }
+        break;
+        
+      case 'inventory':
+        setShowInventory(true);
+        setCmdResponse({ type: 'inventory', text: null });
+        break;
+        
+      case 'back':
+        if (goBack()) {
+          setCmdResponse({ type: 'nav', text: 'You retrace your steps...' });
+        } else {
+          setCmdResponse({ type: 'error', text: "You can't go back any further." });
+        }
+        break;
+        
+      case 'help':
+        setShowHelp(true);
+        break;
+        
+      case 'get':
+        const takeableItem = node.visibleItems?.find(i => 
+          i.action === 'take' && (i.name.toLowerCase().includes(target) || i.id.toLowerCase().includes(target))
+        );
+        if (takeableItem) {
+          setCharacter(c => ({ 
+            ...c, 
+            inventory: [...c.inventory, { itemId: takeableItem.itemId || takeableItem.id, quantity: 1 }] 
+          }));
+          setCmdResponse({ type: 'success', text: `Taken: ${takeableItem.name}` });
+        } else if (target) {
+          setCmdResponse({ type: 'error', text: `You can't take "${target}".` });
+        } else {
+          setCmdResponse({ type: 'error', text: 'Take what?' });
+        }
+        break;
+        
+      default:
+        setCmdResponse({ type: 'error', text: `I don't understand "${cmd}". Type HELP for commands.` });
+    }
+    
+    setCommandInput('');
+  };
+
+  const handleCommandSubmit = (e) => {
+    e.preventDefault();
+    if (commandInput.trim()) {
+      parseCommand(commandInput);
+    }
+  };
+
+  const runCheck = async (n) => {
     setBusy(true);
-    await new Promise(r => setTimeout(r, 300));
-    setNodeId(id);
-    setCombat(null);
+    await new Promise(r => setTimeout(r, 500));
+    const res = doCheck(character, n.checkType, n.difficulty);
+    setSysOut({ ...res, checkType: n.checkType, difficulty: n.difficulty });
+    if (res.success && n.successXp) setCharacter(c => ({ ...c, xp: { ...c.xp, current: c.xp.current + n.successXp } }));
+    await new Promise(r => setTimeout(r, 1200));
+    setNodeId(res.success ? n.successNodeId : n.failureNodeId);
     setBusy(false);
-  };
-
-  const handleChoice = async (choice) => {
-    if (choice.classRequired && character.class !== choice.classRequired) return;
-    if (choice.requirement?.stat && (character.stats[choice.requirement.stat] || 0) < choice.requirement.min) return;
-    if (choice.requirement?.marks && gameState.marks < choice.requirement.marks) return;
-    if (choice.manaCost) {
-      if (character.mana.current < choice.manaCost) return;
-      setCharacter(c => ({ ...c, mana: { ...c.mana, current: c.mana.current - choice.manaCost } }));
-    }
-    if (choice.shadeChange) setGameState(gs => ({ ...gs, shade: Math.max(-10, Math.min(10, gs.shade + choice.shadeChange)) }));
-    if (choice.consequence?.debt) setGameState(gs => ({ ...gs, debt: gs.debt + choice.consequence.debt }));
-    if (choice.journalEntry) setJournal(j => ({ ...j, entries: [...j.entries, { title: node.location, text: choice.journalEntry }] }));
-    goTo(choice.nextNodeId);
-  };
-
-  const handleTake = (item) => {
-    if (item.itemId) {
-      setInventory(inv => [...inv, { itemId: item.itemId, quantity: 1 }]);
-      setJournal(j => ({ ...j, insights: [...j.insights, { title: item.name, text: item.text }] }));
-    }
-  };
-
-  const handleUse = (itemId) => {
-    const item = ITEMS[itemId];
-    if (item?.effect?.type === 'heal') {
-      setCharacter(c => ({ ...c, hp: { ...c.hp, current: Math.min(c.hp.max, c.hp.current + item.effect.amount) } }));
-      setInventory(inv => inv.map(i => i.itemId === itemId ? { ...i, quantity: i.quantity - 1 } : i).filter(i => i.quantity > 0));
-    }
   };
 
   const runCombat = async (n) => {
@@ -747,106 +573,154 @@ function QuestScreen({ character, setCharacter, onComplete }) {
     const res = doCombat(character, n.enemy);
     setCombat({ enemy: n.enemy, ...res });
     setCharacter(c => ({ ...c, hp: { ...c.hp, current: Math.max(0, res.pHp) } }));
-    if (res.victory && n.victoryXp) setCharacter(c => ({ ...c, xp: { ...c.xp, current: c.xp.current + n.victoryXp } }));
+    if (res.victory && n.victoryXp) setCharacter(c => ({ ...c, xp: { ...c.xp, current: c.xp.current + n.victoryXp }, enemiesDefeated: c.enemiesDefeated + 1 }));
     setBusy(false);
   };
 
   const claimReward = (n) => {
     n.rewards?.forEach(r => {
+      if (r.type === 'item') setCharacter(c => ({ ...c, inventory: [...c.inventory, { itemId: r.itemId, quantity: 1 }] }));
       if (r.type === 'xp') setCharacter(c => ({ ...c, xp: { ...c.xp, current: c.xp.current + r.amount } }));
-      if (r.type === 'marks') setGameState(gs => ({ ...gs, marks: gs.marks + r.amount }));
     });
     goTo(n.nextNodeId);
   };
 
   const finishQuest = () => {
     if (node.xpAwarded) setCharacter(c => ({ ...c, xp: { ...c.xp, current: c.xp.current + node.xpAwarded } }));
+    const prov = { id: generateId(), timestamp: new Date().toISOString(), version: character.version, eventType: node.outcome === 'victory' ? 'quest_completed' : 'quest_failed', description: node.outcome === 'victory' ? 'Completed: Silent Station' : 'Failed: Silent Station' };
+    setCharacter(c => ({ ...c, provenance: [...c.provenance, prov], questsCompleted: node.outcome === 'victory' ? c.questsCompleted + 1 : c.questsCompleted }));
     onComplete(node.outcome, node.xpAwarded);
   };
 
   useEffect(() => {
-    if (node?.addItem && !inventory.some(i => i.itemId === node.addItem)) setInventory(inv => [...inv, { itemId: node.addItem, quantity: 1 }]);
+    if (node.type === 'check' && !sysOut && !busy) runCheck(node);
+    if (node.type === 'combat' && !combat && !busy) runCombat(node);
   }, [nodeId]);
 
-  useEffect(() => {
-    if (node?.type === 'combat' && !combat && !busy) runCombat(node);
-  }, [nodeId]);
-
-  const meetsReq = (c) => {
-    if (c.classRequired && character.class !== c.classRequired) return false;
-    if (c.requirement?.stat && (character.stats[c.requirement.stat] || 0) < c.requirement.min) return false;
-    if (c.requirement?.marks && gameState.marks < c.requirement.marks) return false;
-    if (c.manaCost && character.mana.current < c.manaCost) return false;
-    return true;
-  };
-
-  if (!node) return <div className="error">Node not found</div>;
-
+  const hasItem = (id) => character.inventory.some(i => i.itemId === id);
   const hpPct = (character.hp.current / character.hp.max) * 100;
-  const manaPct = (character.mana.current / character.mana.max) * 100;
   const xpPct = (character.xp.current / character.xp.toNextLevel) * 100;
 
   return (
     <div className="game-layout">
       <aside className="sidebar">
         <div className="card">
-          <div className="card-top"><span>◇ GREY STRATUM</span><span>v2.0</span></div>
-          <img src={character.portraitUrl} alt="" className="portrait" onError={(e) => e.target.style.display = 'none'} />
+          <div className="card-top"><span>â—‡ GREY STRATUM</span><span>v{character.version}</span></div>
+          {character.portraitUrl ? <img src={character.portraitUrl} alt="" className="portrait" /> : <div className="portrait-placeholder">{CLASS_DEFS[character.class]?.name[0]}</div>}
           <div className="card-name">{character.name}</div>
           <div className="card-class">{CLASS_DEFS[character.class]?.name}</div>
-          <ShadeBar shade={gameState.shade} />
           <div className="bars">
             <div className="bar"><span>HP</span><span>{character.hp.current}/{character.hp.max}</span></div>
-            <div className="bar-track"><div className="bar-fill hp" style={{ width: `${hpPct}%` }} /></div>
-            <div className="bar"><span>MANA</span><span>{character.mana.current}/{character.mana.max}</span></div>
-            <div className="bar-track"><div className="bar-fill mana" style={{ width: `${manaPct}%` }} /></div>
+            <div className="bar-track"><div className="bar-fill hp" style={{ width: `${hpPct}%`, background: hpPct > 50 ? '#00ff88' : hpPct > 25 ? '#ffaa00' : '#ff3366' }} /></div>
             <div className="bar"><span>XP</span><span>{character.xp.current}/{character.xp.toNextLevel}</span></div>
             <div className="bar-track"><div className="bar-fill xp" style={{ width: `${xpPct}%` }} /></div>
           </div>
           <div className="stats-row">
-            <div><span>STR</span><b>{character.stats.str}</b></div>
-            <div><span>THM</span><b>{character.stats.thm}</b></div>
-            <div><span>RSV</span><b>{character.stats.rsv}</b></div>
-            <div><span>AGI</span><b>{character.stats.agi}</b></div>
-          </div>
-          <div className="sidebar-btns">
-            <button onClick={() => setJournalOpen(true)}>◈ Journal</button>
-            <button onClick={() => setInventoryOpen(true)}>◆ Items</button>
+            <div><span>PHY</span><b>{character.stats.phy}</b></div>
+            <div><span>INT</span><b>{character.stats.int}</b></div>
+            <div><span>DEF</span><b>{character.stats.def}</b></div>
           </div>
         </div>
       </aside>
-
       <main className="narrative">
         {node.location && <div className="location">◆ {node.location}</div>}
         <div className="text">{node.text}</div>
-        <VisibleItems items={node.visibleItems} onTake={handleTake} />
         
-        {combat && (
-          <div className="sys-out">
-            <div className="sys-head">◈ COMBAT — {combat.enemy.name}</div>
-            <div className="combat-log">{combat.rounds.map((r, i) => <div key={i}>R{i + 1}: You {r.pDmg} dmg, Enemy {r.eDmg} dmg</div>)}</div>
-            <div className={combat.victory ? 'win' : 'lose'}>{combat.victory ? '██ VICTORY ██' : '░░ DEFEAT ░░'}</div>
+        {/* Visible Items Display - Classic Adventure Style */}
+        {node.visibleItems && node.visibleItems.length > 0 && (
+          <div className="visible-items">
+            <span className="visible-label">VISIBLE:</span>
+            {node.visibleItems.map((item, i) => (
+              <button key={i} className="item-btn" onClick={() => parseCommand(`look ${item.id}`)}>
+                [{item.name}]
+              </button>
+            ))}
           </div>
         )}
-
+        
+        {/* Command Response */}
+        {cmdResponse && cmdResponse.text && (
+          <div className={`cmd-response ${cmdResponse.type}`}>
+            <pre>{cmdResponse.text}</pre>
+          </div>
+        )}
+        
+        {sysOut && <div className="sys-out"><div className="sys-head">◈ SYSTEM</div><div>{sysOut.checkType.toUpperCase()} CHECK — Diff {sysOut.difficulty}</div><div>Base {sysOut.stat} + Roll {sysOut.roll} = {sysOut.total} vs {sysOut.target}</div><div className={sysOut.success ? 'win' : 'lose'}>{sysOut.success ? '██ SUCCESS ██' : '░░ FAILURE ░░'}</div></div>}
+        {combat && <div className="sys-out"><div className="sys-head">◈ COMBAT — {combat.enemy.name}</div><div className="combat-log">{combat.rounds.map((r, i) => <div key={i}>R{i + 1}: You {r.pDmg} dmg, Enemy {r.eDmg} dmg — HP {r.pHp}/{r.eHp}</div>)}</div><div className={combat.victory ? 'win' : 'lose'}>{combat.victory ? '██ VICTORY ██' : '░░ DEFEAT ░░'}</div></div>}
         <div className="choices">
-          {node.type === 'choice' && node.choices.map(c => (
-            <button key={c.id} disabled={busy || !meetsReq(c)} onClick={() => handleChoice(c)} className={c.shadeChange ? (c.shadeChange > 0 ? 'light' : 'dark') : ''}>
-              <span>[{c.id.toUpperCase()}]</span> {c.text}
-              {c.classRequired && character.class !== c.classRequired && <span className="req">🔒 {c.classRequired}</span>}
-              {c.requirement?.stat && (character.stats[c.requirement.stat] || 0) < c.requirement.min && <span className="req">⚡ {c.requirement.stat.toUpperCase()} {c.requirement.min}+</span>}
-              {c.manaCost && <span className="mana-cost">◇{c.manaCost}</span>}
-            </button>
-          ))}
+          {node.type === 'choice' && node.choices.map(c => {
+            const ok = !c.requirement || hasItem(c.requirement.itemId);
+            return <button key={c.id} disabled={busy || !ok} onClick={() => goTo(c.nextNodeId)}><span>[{c.id.toUpperCase()}]</span> {c.text} {c.requirement && !ok && <span className="req">🔒</span>}</button>;
+          })}
           {node.type === 'narrative' && <button disabled={busy} onClick={() => goTo(node.nextNodeId)}>Continue...</button>}
-          {node.type === 'reward' && <><div className="reward">{node.rewards?.map((r, i) => <div key={i}>+ {r.amount} {r.type}</div>)}</div><button disabled={busy} onClick={() => claimReward(node)}>Continue...</button></>}
+          {node.type === 'reward' && <><div className="reward">{node.rewards?.map((r, i) => <div key={i}>+ {r.type === 'item' ? r.itemId : `${r.amount} XP`}</div>)}</div><button disabled={busy} onClick={() => claimReward(node)}>Continue...</button></>}
           {node.type === 'combat' && combat && !busy && (combat.victory ? <button onClick={() => goTo(node.victoryNodeId)}>Continue...</button> : <><button onClick={() => goTo(node.defeatNodeId)}>Accept defeat...</button>{node.fleeNodeId && <button onClick={() => goTo(node.fleeNodeId)}>Flee!</button>}</>)}
-          {node.type === 'outcome' && <><div className="xp-award">+{node.xpAwarded} XP</div><button onClick={finishQuest}>{node.outcome === 'act-complete' ? 'Continue to Act 2...' : 'Return to Menu'}</button></>}
+          {node.type === 'outcome' && <><div className="xp-award">+{node.xpAwarded} XP</div><button onClick={finishQuest}>Return to Menu</button></>}
         </div>
+        
+        {/* Command Input Bar - Classic Adventure Style */}
+        <form className="cmd-bar" onSubmit={handleCommandSubmit}>
+          <span className="cmd-prompt">&gt;</span>
+          <input 
+            type="text" 
+            value={commandInput}
+            onChange={e => setCommandInput(e.target.value)}
+            placeholder="LOOK, INVENTORY, BACK, HELP..."
+            className="cmd-input"
+            autoComplete="off"
+          />
+          <div className="cmd-hints">
+            <button type="button" className="hint-btn" onClick={() => parseCommand('look')}>L</button>
+            <button type="button" className="hint-btn" onClick={() => parseCommand('inventory')}>I</button>
+            <button type="button" className="hint-btn" onClick={() => parseCommand('back')}>B</button>
+            <button type="button" className="hint-btn" onClick={() => setShowHelp(true)}>?</button>
+          </div>
+        </form>
       </main>
-
-      <EchoJournal entries={journal.entries} insights={journal.insights} isOpen={journalOpen} onClose={() => setJournalOpen(false)} />
-      <InventoryPanel inventory={inventory} marks={gameState.marks} debt={gameState.debt} isOpen={inventoryOpen} onClose={() => setInventoryOpen(false)} onUse={handleUse} />
+      
+      {/* Inventory Modal */}
+      {showInventory && (
+        <div className="modal-overlay" onClick={() => setShowInventory(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <span>◇ INVENTORY</span>
+              <button onClick={() => setShowInventory(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              {character.inventory.length === 0 ? (
+                <p className="empty-inv">Your inventory is empty.</p>
+              ) : (
+                character.inventory.map((item, i) => (
+                  <div key={i} className="inv-item">
+                    • {item.itemId} {item.quantity > 1 ? `(x${item.quantity})` : ''}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Help Modal */}
+      {showHelp && (
+        <div className="modal-overlay" onClick={() => setShowHelp(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <span>◇ COMMANDS</span>
+              <button onClick={() => setShowHelp(false)}>✕</button>
+            </div>
+            <div className="modal-body help-content">
+              <div className="help-cmd"><b>LOOK</b> or <b>L</b> — Examine your surroundings</div>
+              <div className="help-cmd"><b>LOOK [item]</b> — Examine a specific item</div>
+              <div className="help-cmd"><b>INVENTORY</b> or <b>I</b> — Check your items</div>
+              <div className="help-cmd"><b>BACK</b> or <b>B</b> — Return to previous location</div>
+              <div className="help-cmd"><b>GET [item]</b> — Pick up an item</div>
+              <div className="help-cmd"><b>HELP</b> or <b>?</b> — Show this help</div>
+              <p className="help-note">Click [VISIBLE ITEMS] to examine them, or use choices below.</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -861,47 +735,53 @@ export default function App() {
   const [outcome, setOutcome] = useState(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem('gs-char-v2');
+    const saved = localStorage.getItem('gs-char');
     if (saved) try { setCharacter(JSON.parse(saved)); } catch {}
   }, []);
 
   useEffect(() => {
-    if (character) localStorage.setItem('gs-char-v2', JSON.stringify(character));
+    if (character) localStorage.setItem('gs-char', JSON.stringify(character));
   }, [character]);
 
-  const handleCreate = (data) => {
-    setCharacter(createCharacter(data.name, data.class, data.portraitUrl, data.portraitIndex));
+  const handleCreatorDone = (data) => {
+    const char = createCharacter(data.name, data.class, data.portraitUrl);
+    setCharacter(char);
     setScreen('menu');
+  };
+
+  const handleQuestDone = (result, xp) => {
+    setOutcome({ result, xp });
+    setScreen('outcome');
   };
 
   return (
     <>
-      <style>{STYLES}</style>
+      <style>{appStyles}</style>
       <div className="app">
-        <header><div className="brand">GREY STRATUM</div><div className="sub">THE DESCENT v2.0</div></header>
-        
+        <header><div className="brand">GREY STRATUM</div><div className="sub">v2.1</div></header>
         {screen === 'menu' && (
           <div className="menu">
             <h1>GREY STRATUM</h1>
-            <p className="tagline">What does humanity owe itself when survival is uncertain?</p>
-            {character && <div className="menu-card"><img src={character.portraitUrl} alt="" onError={e => e.target.style.display = 'none'} /><div><b>{character.name}</b><br />{CLASS_DEFS[character.class]?.name} Lv{character.level}</div></div>}
-            <button onClick={() => setScreen('quest')} disabled={!character}>▸ BEGIN DESCENT</button>
-            <button onClick={() => setScreen('create')}>▸ NEW OPERATIVE</button>
+            {character && (
+              <div className="menu-card">
+                {character.portraitUrl && <img src={character.portraitUrl} alt="" />}
+                <div><b>{character.name}</b><br />{CLASS_DEFS[character.class]?.name} Lv{character.level}</div>
+              </div>
+            )}
+            <button onClick={() => setScreen('quest')} disabled={!character}>â–¸ START MISSION</button>
+            <button onClick={() => setScreen('create')}>â–¸ NEW CHARACTER</button>
           </div>
         )}
-        
-        {screen === 'create' && <CharacterCreator onComplete={handleCreate} onCancel={() => setScreen('menu')} />}
-        {screen === 'quest' && character && <QuestScreen character={character} setCharacter={setCharacter} onComplete={(r, xp) => { setOutcome({ result: r, xp }); setScreen('outcome'); }} />}
-        
+        {screen === 'create' && <CharacterCreator onComplete={handleCreatorDone} onCancel={() => setScreen('menu')} />}
+        {screen === 'quest' && character && <QuestScreen character={character} setCharacter={setCharacter} onComplete={handleQuestDone} />}
         {screen === 'outcome' && (
           <div className="outcome">
-            <h1 className={outcome?.result}>{outcome?.result === 'act-complete' ? 'ACT 1 COMPLETE' : 'THE SURVIVOR'}</h1>
+            <h1 className={outcome?.result}>{outcome?.result === 'victory' ? 'MISSION COMPLETE' : outcome?.result === 'defeat' ? 'MISSION FAILED' : 'INCOMPLETE'}</h1>
             <div className="xp">+{outcome?.xp} XP</div>
             <button onClick={() => setScreen('menu')}>Menu</button>
           </div>
         )}
-        
-        <footer><span>● ONLINE</span><span>THE CIRCUIT</span></footer>
+        <footer><span>â— ONLINE</span><span>SECTOR 7</span></footer>
       </div>
     </>
   );
@@ -911,12 +791,13 @@ export default function App() {
 // STYLES
 // =============================================================================
 
-const STYLES = `
+const appStyles = `
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&family=Share+Tech+Mono&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0a0a0f;--panel:#12121a;--card:#1a1a25;--border:#2a2a3a;--cyan:#00f0ff;--amber:#ffaa00;--green:#00ff88;--red:#ff3366;--text:#c0c0d0;--dim:#606080;--mana:#a855f7}
-body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif}
-.app{min-height:100vh;display:flex;flex-direction:column}
+:root{--bg:#0a0a0f;--panel:#12121a;--card:#1a1a25;--border:#2a2a3a;--cyan:#00f0ff;--amber:#ffaa00;--green:#00ff88;--red:#ff3366;--text:#c0c0d0;--dim:#606080}
+html{overflow-x:hidden;-webkit-overflow-scrolling:touch}
+body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;overflow-x:hidden;position:relative;width:100%;max-width:100vw}
+.app{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;overflow-x:hidden;position:relative;touch-action:pan-y pinch-zoom;-webkit-overflow-scrolling:touch}
 header{padding:.75rem 1.5rem;background:var(--panel);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
 .brand{font-family:'Orbitron',sans-serif;color:var(--cyan);letter-spacing:.2em}
 .sub{font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--dim)}
@@ -924,9 +805,8 @@ footer{padding:.5rem 1.5rem;background:var(--panel);border-top:1px solid var(--b
 footer span:first-child::before{content:'';display:inline-block;width:6px;height:6px;background:var(--green);border-radius:50%;margin-right:.4rem}
 
 .menu{max-width:500px;margin:3rem auto;padding:2rem;text-align:center}
-.menu h1{font-family:'Orbitron',sans-serif;font-size:1.8rem;color:var(--cyan);letter-spacing:.3em;margin-bottom:.5rem}
-.menu .tagline{font-size:.9rem;color:var(--dim);margin-bottom:2rem;font-style:italic}
-.menu button{display:block;width:100%;padding:.9rem;margin:.5rem 0;background:var(--card);border:1px solid var(--border);border-radius:4px;font-family:'Orbitron',sans-serif;font-size:.8rem;color:var(--text);cursor:pointer}
+.menu h1{font-family:'Orbitron',sans-serif;font-size:1.8rem;color:var(--cyan);letter-spacing:.3em;margin-bottom:2rem}
+.menu button{display:block;width:100%;padding:.9rem;margin:.5rem 0;background:var(--card);border:1px solid var(--border);border-radius:4px;font-family:'Orbitron',sans-serif;font-size:.8rem;color:var(--text);letter-spacing:.1em;cursor:pointer}
 .menu button:hover{border-color:var(--cyan);color:var(--cyan)}
 .menu button:disabled{opacity:.4;cursor:not-allowed}
 .menu-card{display:flex;align-items:center;gap:1rem;padding:1rem;background:var(--card);border-radius:6px;margin-bottom:1.5rem;text-align:left}
@@ -934,41 +814,34 @@ footer span:first-child::before{content:'';display:inline-block;width:6px;height
 
 .outcome{max-width:500px;margin:3rem auto;padding:2rem;text-align:center}
 .outcome h1{font-family:'Orbitron',sans-serif;font-size:1.3rem;letter-spacing:.2em;margin-bottom:1rem}
-.outcome h1.act-complete{color:var(--cyan)}
-.outcome h1.early-ending{color:var(--amber)}
+.outcome h1.victory{color:var(--green)}
+.outcome h1.defeat{color:var(--red)}
+.outcome h1.retreat{color:var(--amber)}
 .outcome .xp{font-family:'Share Tech Mono',monospace;color:var(--cyan);margin-bottom:2rem}
 .outcome button{padding:.75rem 2rem;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--text);cursor:pointer}
 
-.creator{max-width:900px;margin:1rem auto;background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.creator{max-width:850px;margin:1rem auto;background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden}
 .creator-header{display:flex;justify-content:space-between;align-items:center;padding:.75rem 1rem;background:var(--card);border-bottom:1px solid var(--border)}
-.creator-header h1{font-family:'Orbitron',sans-serif;font-size:.9rem;color:var(--cyan)}
+.creator-header h1{font-family:'Orbitron',sans-serif;font-size:.9rem;color:var(--cyan);letter-spacing:.15em}
 .creator-header button{background:none;border:none;color:var(--dim);font-size:1.1rem;cursor:pointer}
-.creator-body{display:grid;grid-template-columns:280px 1fr;gap:1px;background:var(--border)}
+.creator-body{display:grid;grid-template-columns:300px 1fr;gap:1px;background:var(--border)}
 .preview-panel{background:var(--bg);padding:1rem;display:flex;flex-direction:column;align-items:center}
 .preview-frame{width:240px;height:300px;background:#000;border:2px solid var(--border);border-radius:6px;overflow:hidden}
 .preview-frame img{width:100%;height:100%;object-fit:cover}
 .preview-stats{display:flex;gap:.75rem;margin-top:.75rem;font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--cyan)}
-.class-traits{display:flex;gap:.5rem;margin-top:.5rem;flex-wrap:wrap;justify-content:center}
-.trait{font-size:.65rem;padding:.2rem .5rem;background:var(--card);border:1px solid var(--border);border-radius:3px;color:var(--amber)}
-.options-panel{background:var(--panel);padding:1rem;overflow-y:auto;max-height:480px}
+.rand-btn{margin-top:.75rem;padding:.5rem 1rem;background:var(--card);border:1px solid var(--border);border-radius:4px;font-family:'Orbitron',sans-serif;font-size:.65rem;color:var(--dim);cursor:pointer;letter-spacing:.1em}
+.rand-btn:hover{color:var(--cyan)}
+.options-panel{background:var(--panel);padding:1rem;overflow-y:auto;max-height:420px}
 .opt-section{font-family:'Orbitron',sans-serif;font-size:.6rem;color:var(--cyan);letter-spacing:.1em;margin:1rem 0 .5rem;padding-bottom:.3rem;border-bottom:1px solid var(--border)}
-.opt-section:first-child{margin-top:0}
-.class-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem}
-.class-btn{padding:.6rem;background:var(--card);border:1px solid var(--border);border-radius:4px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
-.class-btn:hover{border-color:var(--cyan)}
-.class-btn.selected{border-color:var(--cyan);background:#1a2a3a}
-.class-name{font-size:.8rem;color:var(--text)}
-.class-affinity{font-size:1rem}
-.class-affinity.white{color:#e0e0ff}
-.class-affinity.black{color:#404040}
-.class-affinity.grey{color:#808080}
-.portrait-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem}
-.portrait-btn{aspect-ratio:3/4;background:var(--card);border:2px solid var(--border);border-radius:4px;cursor:pointer;overflow:hidden;padding:0}
-.portrait-btn:hover{border-color:var(--cyan)}
-.portrait-btn.selected{border-color:var(--cyan);box-shadow:0 0 10px rgba(0,240,255,.3)}
-.portrait-btn img{width:100%;height:100%;object-fit:cover}
-.portrait-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--dim)}
-.class-desc{font-size:.85rem;color:var(--dim);line-height:1.5}
+.opt-group{margin-bottom:.6rem}
+.opt-group label{display:block;font-family:'Orbitron',sans-serif;font-size:.5rem;color:var(--dim);letter-spacing:.08em;margin-bottom:.2rem}
+.opt-group select{width:100%;padding:.4rem;background:var(--card);border:1px solid var(--border);border-radius:3px;color:var(--text);font-size:.8rem}
+.color-row{margin-bottom:.6rem}
+.color-row label{display:block;font-family:'Orbitron',sans-serif;font-size:.5rem;color:var(--dim);margin-bottom:.3rem}
+.swatches{display:flex;gap:.3rem;flex-wrap:wrap}
+.swatch{width:24px;height:24px;border:2px solid transparent;border-radius:3px;cursor:pointer}
+.swatch:hover{transform:scale(1.1)}
+.swatch.sel{border-color:#fff;box-shadow:0 0 8px rgba(255,255,255,.3)}
 .creator-footer{padding:.75rem 1rem;background:var(--card);border-top:1px solid var(--border);display:flex;gap:.75rem}
 .creator-footer input{flex:1;padding:.6rem;background:var(--panel);border:1px solid var(--border);border-radius:4px;color:#fff;font-size:.9rem}
 .creator-footer input::placeholder{color:var(--dim)}
@@ -979,86 +852,88 @@ footer span:first-child::before{content:'';display:inline-block;width:6px;height
 .sidebar{background:var(--panel);padding:1rem;overflow-y:auto}
 .card{background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden}
 .card-top{display:flex;justify-content:space-between;padding:.5rem .6rem;background:#1a1a25;border-bottom:1px solid var(--border);font-family:'Orbitron',sans-serif;font-size:.5rem;color:var(--cyan)}
+.card-top span:last-child{color:var(--amber);background:rgba(255,170,0,.1);padding:.1rem .3rem;border-radius:2px}
 .portrait{width:100%;height:180px;object-fit:cover}
+.portrait-placeholder{height:140px;display:flex;align-items:center;justify-content:center;font-size:3rem;color:var(--dim);background:var(--bg)}
 .card-name{text-align:center;font-family:'Orbitron',sans-serif;font-size:.9rem;color:#fff;padding:.5rem .5rem 0}
 .card-class{text-align:center;font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--cyan);padding-bottom:.5rem;border-bottom:1px solid var(--border)}
-.shade-container{padding:.5rem .6rem;border-bottom:1px solid var(--border)}
-.shade-label{display:flex;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--dim);margin-bottom:.25rem}
-.shade-track{position:relative;height:8px;background:var(--bg);border-radius:4px}
-.shade-gradient{position:absolute;inset:0;background:linear-gradient(90deg,#1a1a1a,#808080,#ffffff);border-radius:4px;opacity:.6}
-.shade-marker{position:absolute;top:-2px;width:4px;height:12px;background:var(--cyan);border-radius:2px;transform:translateX(-50%);box-shadow:0 0 6px var(--cyan)}
-.shade-ends{display:flex;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:.45rem;color:var(--dim);margin-top:.2rem}
 .bars{padding:.6rem}
 .bar{display:flex;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--dim);margin-bottom:.15rem}
 .bar-track{height:6px;background:var(--bg);border-radius:2px;overflow:hidden;margin-bottom:.4rem}
 .bar-fill{height:100%;transition:width .3s}
 .bar-fill.hp{background:var(--green)}
-.bar-fill.mana{background:var(--mana)}
-.bar-fill.xp{background:var(--cyan)}
+.bar-fill.xp{background:linear-gradient(90deg,#00a0aa,var(--cyan))}
 .stats-row{display:flex;justify-content:space-around;padding:.5rem;border-top:1px solid var(--border)}
 .stats-row div{text-align:center}
 .stats-row span{display:block;font-family:'Orbitron',sans-serif;font-size:.45rem;color:var(--dim)}
-.stats-row b{font-family:'Orbitron',sans-serif;font-size:1rem;color:#fff}
-.sidebar-btns{display:flex;gap:.5rem;padding:.5rem}
-.sidebar-btns button{flex:1;padding:.4rem;background:var(--bg);border:1px solid var(--border);border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--dim);cursor:pointer}
-.sidebar-btns button:hover{border-color:var(--cyan);color:var(--cyan)}
+.stats-row b{font-family:'Orbitron',sans-serif;font-size:1.1rem;color:#fff}
 
 .narrative{background:var(--panel);padding:1.5rem;overflow-y:auto}
 .location{font-family:'Orbitron',sans-serif;font-size:.65rem;color:var(--amber);letter-spacing:.2em;margin-bottom:1rem}
 .text{font-size:1rem;line-height:1.7;white-space:pre-wrap;max-width:650px}
-.visible-items{margin:1rem 0;padding:.75rem;background:var(--bg);border:1px solid var(--border);border-radius:4px;max-width:500px}
-.vi-header{font-family:'Orbitron',sans-serif;font-size:.6rem;color:var(--amber);margin-bottom:.5rem}
-.vi-item{margin-bottom:.25rem}
-.vi-name{background:none;border:none;color:var(--cyan);font-family:'Share Tech Mono',monospace;font-size:.8rem;cursor:pointer;padding:0}
-.vi-name:hover{text-decoration:underline}
-.vi-detail{margin-top:.25rem;padding:.5rem;background:var(--card);border-radius:4px;font-size:.85rem}
-.vi-take{margin-top:.5rem;padding:.25rem .5rem;background:var(--cyan);border:none;border-radius:2px;color:var(--bg);font-size:.7rem;cursor:pointer}
 .sys-out{background:var(--bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:.75rem;margin:1rem 0;font-family:'Share Tech Mono',monospace;font-size:.75rem;max-width:450px}
-.sys-head{color:var(--cyan);margin-bottom:.5rem;font-size:.65rem}
+.sys-head{color:var(--cyan);margin-bottom:.5rem;font-size:.65rem;letter-spacing:.1em}
 .sys-out .win{color:var(--green);margin-top:.5rem;font-weight:bold}
 .sys-out .lose{color:var(--red);margin-top:.5rem;font-weight:bold}
-.combat-log{max-height:100px;overflow-y:auto;font-size:.65rem;color:var(--dim)}
+.combat-log{max-height:120px;overflow-y:auto;margin:.5rem 0;font-size:.65rem;color:var(--dim)}
 .choices{margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1rem}
 .choices button{display:flex;align-items:center;gap:.6rem;width:100%;padding:.65rem .8rem;margin-bottom:.4rem;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:.85rem;cursor:pointer;text-align:left}
 .choices button:hover:not(:disabled){background:#222230;border-color:var(--cyan);transform:translateX(3px)}
 .choices button:disabled{opacity:.4;cursor:not-allowed}
 .choices button span:first-child{font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--cyan)}
-.choices button.light{border-left:3px solid #a0a0e0}
-.choices button.dark{border-left:3px solid #404040}
-.choices .req{color:var(--amber);font-size:.7rem;margin-left:auto}
-.choices .mana-cost{color:var(--mana);font-size:.7rem;margin-left:.5rem}
+.choices .req{color:var(--amber);font-size:.7rem}
 .choices .reward{color:var(--green);font-family:'Share Tech Mono',monospace;font-size:.8rem;margin-bottom:.5rem}
 .choices .xp-award{color:var(--cyan);font-family:'Share Tech Mono',monospace;margin-bottom:.5rem}
 
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:100}
-.panel{width:90%;max-width:500px;max-height:80vh;background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden;display:flex;flex-direction:column}
-.panel-header{display:flex;justify-content:space-between;align-items:center;padding:.75rem 1rem;background:var(--card);border-bottom:1px solid var(--border)}
-.panel-header h2{font-family:'Orbitron',sans-serif;font-size:.9rem;color:var(--cyan)}
-.panel-header button{background:none;border:none;color:var(--dim);font-size:1.2rem;cursor:pointer}
-.tabs{display:flex;border-bottom:1px solid var(--border)}
-.tabs button{flex:1;padding:.5rem;background:none;border:none;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:.75rem;cursor:pointer}
-.tabs button.active{color:var(--cyan);border-bottom:2px solid var(--cyan)}
-.panel-content{flex:1;overflow-y:auto;padding:1rem}
-.empty{color:var(--dim);font-style:italic;text-align:center}
-.entry{margin-bottom:1rem;padding:.75rem;background:var(--card);border-radius:4px}
-.entry-title{font-family:'Orbitron',sans-serif;font-size:.7rem;color:var(--amber);margin-bottom:.5rem}
-.entry-text{font-size:.85rem;line-height:1.5}
-.currency{display:flex;gap:1rem;padding:.75rem 1rem;border-bottom:1px solid var(--border);font-family:'Share Tech Mono',monospace;font-size:.8rem}
-.currency .marks{color:var(--amber)}
-.currency .debt{color:var(--red)}
-.inv-item{display:flex;align-items:center;gap:.75rem;padding:.5rem;margin-bottom:.5rem;background:var(--card);border:1px solid var(--border);border-radius:4px;cursor:pointer}
-.inv-item:hover,.inv-item.selected{border-color:var(--cyan)}
-.inv-icon{font-size:1.2rem;color:var(--cyan)}
-.inv-name{flex:1;font-size:.85rem}
-.inv-qty{font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--dim)}
-.item-details{padding:1rem;border-top:1px solid var(--border);background:var(--bg)}
-.item-details p{font-size:.85rem;margin-bottom:.5rem}
-.item-details button{padding:.4rem .75rem;background:var(--cyan);border:none;border-radius:4px;color:var(--bg);font-size:.75rem;cursor:pointer}
-.error{padding:2rem;text-align:center;color:var(--red)}
+/* Visible Items - Classic Adventure Style */
+.visible-items{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:1rem 0;padding:.75rem;background:rgba(0,240,255,.05);border:1px solid var(--border);border-radius:4px}
+.visible-label{font-family:'Orbitron',sans-serif;font-size:.65rem;color:var(--amber);letter-spacing:.1em;margin-right:.5rem}
+.item-btn{background:transparent;border:1px solid var(--cyan);border-radius:3px;padding:.3rem .6rem;font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--cyan);cursor:pointer;transition:all .2s}
+.item-btn:hover{background:rgba(0,240,255,.15);transform:scale(1.02)}
+
+/* Command Response */
+.cmd-response{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:.75rem;margin:1rem 0;font-family:'Share Tech Mono',monospace;font-size:.8rem;white-space:pre-wrap}
+.cmd-response pre{margin:0;white-space:pre-wrap;word-wrap:break-word}
+.cmd-response.error{border-left:3px solid var(--red);color:var(--red)}
+.cmd-response.success{border-left:3px solid var(--green);color:var(--green)}
+.cmd-response.look,.cmd-response.examine{border-left:3px solid var(--cyan);color:var(--text)}
+.cmd-response.nav{border-left:3px solid var(--amber);color:var(--amber)}
+
+/* Command Bar */
+.cmd-bar{display:flex;align-items:center;gap:.5rem;margin-top:1.5rem;padding:.75rem;background:var(--bg);border:1px solid var(--border);border-radius:4px}
+.cmd-prompt{font-family:'Share Tech Mono',monospace;font-size:1.1rem;color:var(--cyan)}
+.cmd-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.9rem}
+.cmd-input::placeholder{color:var(--dim)}
+.cmd-hints{display:flex;gap:.3rem}
+.hint-btn{width:28px;height:28px;background:var(--card);border:1px solid var(--border);border-radius:3px;font-family:'Orbitron',sans-serif;font-size:.7rem;color:var(--dim);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.hint-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+
+/* Modals */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:100}
+.modal{background:var(--panel);border:1px solid var(--border);border-radius:8px;width:90%;max-width:400px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column}
+.modal-header{display:flex;justify-content:space-between;align-items:center;padding:.75rem 1rem;background:var(--card);border-bottom:1px solid var(--border)}
+.modal-header span{font-family:'Orbitron',sans-serif;font-size:.8rem;color:var(--cyan);letter-spacing:.1em}
+.modal-header button{background:none;border:none;color:var(--dim);font-size:1.2rem;cursor:pointer;padding:0;line-height:1}
+.modal-header button:hover{color:var(--text)}
+.modal-body{padding:1rem;overflow-y:auto;flex:1}
+.empty-inv{color:var(--dim);font-style:italic;font-size:.9rem}
+.inv-item{font-family:'Share Tech Mono',monospace;font-size:.85rem;color:var(--text);padding:.4rem 0;border-bottom:1px solid var(--border)}
+.inv-item:last-child{border-bottom:none}
+.help-content{font-family:'Share Tech Mono',monospace}
+.help-cmd{padding:.4rem 0;font-size:.85rem;color:var(--text)}
+.help-cmd b{color:var(--cyan)}
+.help-note{margin-top:1rem;padding-top:.75rem;border-top:1px solid var(--border);color:var(--dim);font-size:.8rem}
 
 @media(max-width:768px){
   .creator-body,.game-layout{grid-template-columns:1fr}
   .sidebar{display:none}
-  .portrait-grid{grid-template-columns:repeat(3,1fr)}
+  .narrative{padding:1rem}
+  .text{font-size:.95rem;word-wrap:break-word;overflow-wrap:break-word}
+  .choices button{padding:.8rem;font-size:.9rem}
+  .menu{padding:1.5rem;margin:1.5rem auto}
+  .menu h1{font-size:1.4rem}
+  .cmd-bar{flex-wrap:wrap}
+  .cmd-input{min-width:150px}
+  .visible-items{flex-direction:column;align-items:flex-start}
 }
 `;
