@@ -17,8 +17,8 @@ const NarrativePanel = ({
 }) => {
   if (!node) {
     return (
-      <div className="narrative">
-        <div className="text">Loading...</div>
+      <div className="narrative-panel">
+        <div className="narrative-text">Loading...</div>
       </div>
     );
   }
@@ -76,14 +76,17 @@ const NarrativePanel = ({
   };
 
   return (
-    <div className="narrative">
+    <div className="narrative-panel">
       {/* Location Header */}
       {node.location && (
-        <div className="location">◆ {node.location}</div>
+        <div className="narrative-location">
+          <span className="location-marker">◆</span>
+          {node.location}
+        </div>
       )}
       
       {/* Main Text */}
-      <div className="text">{node.text}</div>
+      <div className="narrative-text">{node.text}</div>
       
       {/* Visible Items (if any) */}
       {node.visibleItems && node.visibleItems.length > 0 && (
@@ -112,67 +115,85 @@ const NarrativePanel = ({
       
       {/* System Output (skill checks, etc.) */}
       {systemOutput && (
-        <div className="sys-out">
-          <div className="sys-head">◈ SYSTEM OUTPUT</div>
-          {systemOutput.type === 'check' && (
-            <>
-              <div>{systemOutput.checkType.toUpperCase()} CHECK — Difficulty {systemOutput.difficulty}</div>
-              <div>Base {systemOutput.statValue} + Roll {systemOutput.roll} = {systemOutput.total} vs {systemOutput.target}</div>
-              <div className={systemOutput.success ? 'win' : 'lose'}>
-                {systemOutput.success ? '▓▓ SUCCESS ▓▓' : '░░ FAILURE ░░'}
-              </div>
-            </>
-          )}
-          {systemOutput.type === 'reward' && (
-            <>
-              {systemOutput.xp && <div className="xp-award">+{systemOutput.xp} XP</div>}
-              {systemOutput.marks && <div className="reward">+{systemOutput.marks} MARKS</div>}
-              {systemOutput.item && <div className="reward">Acquired: {systemOutput.item}</div>}
-            </>
-          )}
+        <div className="system-output">
+          <div className="system-header">
+            <span className="system-icon">◈</span>
+            <span>SYSTEM OUTPUT</span>
+          </div>
+          <div className="system-content">
+            {systemOutput.type === 'check' && (
+              <>
+                <div className="check-type">{systemOutput.checkType.toUpperCase()} CHECK — Difficulty {systemOutput.difficulty}</div>
+                <div className="check-calculation">Base {systemOutput.statValue} + Roll {systemOutput.roll} = {systemOutput.total} vs {systemOutput.target}</div>
+                <div className="check-progress">
+                  <div className="progress-bar">
+                    <div 
+                      className={`progress-fill ${systemOutput.success ? 'success' : 'failure'}`}
+                      style={{ width: `${Math.min((systemOutput.total / systemOutput.target) * 100, 100)}%` }}
+                    />
+                  </div>
+                </div>
+                <div className={`check-result ${systemOutput.success ? 'success' : 'failure'}`}>
+                  {systemOutput.success ? '▓▓ SUCCESS ▓▓' : '░░ FAILURE ░░'}
+                </div>
+              </>
+            )}
+            {systemOutput.type === 'reward' && (
+              <>
+                {systemOutput.xp && <div className="reward-xp">+{systemOutput.xp} XP</div>}
+                {systemOutput.marks && <div className="reward-marks">+{systemOutput.marks} MARKS</div>}
+                {systemOutput.item && <div className="reward-item">Acquired: {systemOutput.item}</div>}
+              </>
+            )}
+          </div>
         </div>
       )}
       
       {/* Choices */}
       {node.type === 'choice' && node.choices && (
-        <div className="choices">
-          {node.choices.map((choice, index) => {
-            const available = isChoiceAvailable(choice);
-            const reqText = !available ? getRequirementText(choice) : '';
-            
-            return (
-              <button
-                key={choice.id}
-                onClick={() => available && onChoice(choice.id)}
-                disabled={!available || isProcessing}
-                className={!available ? 'unavailable' : ''}
-              >
-                <span>[{String.fromCharCode(65 + index)}]</span>
-                <span className="choice-text">
-                  {choice.text}
-                  {choice.shadeChange && (
-                    <span className={`shade-indicator ${choice.shadeChange > 0 ? 'light' : 'dark'}`}>
-                      {choice.shadeChange > 0 ? '◇' : '◆'}
-                    </span>
+        <div className="choices-section">
+          <div className="choices-header">ACTIONS</div>
+          <div className="choices-list">
+            {node.choices.map((choice, index) => {
+              const available = isChoiceAvailable(choice);
+              const reqText = !available ? getRequirementText(choice) : '';
+              
+              return (
+                <button
+                  key={choice.id}
+                  className={`choice-button ${!available ? 'unavailable' : ''}`}
+                  onClick={() => available && onChoice(choice.id)}
+                  disabled={!available || isProcessing}
+                >
+                  <span className="choice-key">[{String.fromCharCode(65 + index)}]</span>
+                  <span className="choice-text">
+                    {choice.text}
+                    {choice.shadeChange && (
+                      <span className={`shade-indicator ${choice.shadeChange > 0 ? 'light' : 'dark'}`}>
+                        {choice.shadeChange > 0 ? '◇' : '◆'}
+                      </span>
+                    )}
+                  </span>
+                  {reqText && <span className="choice-requirement">{reqText}</span>}
+                  {choice.manaCost && available && (
+                    <span className="choice-mana-cost">-{choice.manaCost} mana</span>
                   )}
-                </span>
-                {reqText && <span className="req">{reqText}</span>}
-                {choice.manaCost && available && (
-                  <span className="mana-cost">-{choice.manaCost} mana</span>
-                )}
-              </button>
-            );
-          })}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
       
       {/* Narrative Continue Button */}
       {node.type === 'narrative' && node.nextNodeId && (
-        <div className="choices">
-          <button onClick={() => onChoice('continue')} disabled={isProcessing}>
-            <span>[SPACE]</span>
-            <span className="choice-text">Continue</span>
-          </button>
+        <div className="choices-section">
+          <div className="choices-list">
+            <button className="choice-button" onClick={() => onChoice('continue')} disabled={isProcessing}>
+              <span className="choice-key">[SPACE]</span>
+              <span className="choice-text">Continue</span>
+            </button>
+          </div>
         </div>
       )}
       
@@ -180,7 +201,7 @@ const NarrativePanel = ({
       {node.type === 'outcome' && (
         <div className="outcome">
           <div className="outcome-title">{node.endingName || 'End'}</div>
-          {node.xpAwarded && <div className="xp-award">+{node.xpAwarded} XP</div>}
+          {node.xpAwarded && <div className="outcome-xp">+{node.xpAwarded} XP</div>}
         </div>
       )}
     </div>

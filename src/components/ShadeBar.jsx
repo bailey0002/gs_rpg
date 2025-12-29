@@ -34,33 +34,33 @@ const ShadeBar = ({ value = 0, showLabels = true, size = 'normal' }) => {
   return (
     <div className={`shade-bar ${size}`}>
       {showLabels && (
-        <div className="shade-labels">
-          <span className="shade-label-left">VOID</span>
-          <span className="shade-label-center">{getLabel()}</span>
-          <span className="shade-label-right">LUMINOUS</span>
+        <div className="shade-bar-labels">
+          <span className="shade-bar-label-left">VOID</span>
+          <span className="shade-bar-label-center">{getLabel()}</span>
+          <span className="shade-bar-label-right">LUMINOUS</span>
         </div>
       )}
       
-      <div className="shade-track">
+      <div className="shade-bar-track">
         {/* Gradient background */}
-        <div className="shade-gradient" />
+        <div className="shade-bar-gradient" />
         
         {/* Center marker (0) */}
-        <div className="shade-center-mark" />
+        <div className="shade-bar-center" />
         
         {/* Current position marker */}
         <div 
-          className={`shade-marker ${getColorClass()}`}
+          className={`shade-bar-marker ${getColorClass()}`}
           style={{ left: `${position}%` }}
         >
-          <span className="shade-marker-value">
+          <span className="shade-bar-marker-value">
             {clampedValue > 0 ? '+' : ''}{clampedValue}
           </span>
         </div>
       </div>
       
       {/* Tick marks */}
-      <div className="shade-ticks">
+      <div className="shade-bar-ticks">
         <span>-10</span>
         <span>-5</span>
         <span>0</span>

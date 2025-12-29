@@ -68,7 +68,7 @@ const JournalModal = ({
         <div className="modal-content">
           {/* Entries Tab */}
           {activeTab === 'entries' && (
-            <div className="journal-entries">
+            <div className="journal-entries-list">
               {(!journal.entries || journal.entries.length === 0) ? (
                 <div className="journal-empty">
                   No entries yet. Your journey awaits.
@@ -95,7 +95,7 @@ const JournalModal = ({
           
           {/* Insights Tab */}
           {activeTab === 'insights' && (
-            <div className="journal-insights">
+            <div className="journal-insights-list">
               {(!journal.insights || journal.insights.length === 0) ? (
                 <div className="journal-empty">
                   No insights discovered. Examine your world carefully.

@@ -3,7 +3,6 @@
 // /src/App.jsx
 // =============================================================================
 // Orchestrator only. All logic lives in components and engine.
-// Target: < 150 lines
 
 import React, { useState, useEffect, useCallback } from 'react';
 
@@ -171,7 +170,14 @@ const App = () => {
 
   // Render based on screen
   return (
-    <div className="app">
+    <div className="game-container">
+      {/* Ambient Background */}
+      <div className="ambient-bg">
+        <div className="stars" />
+        <div className="nebula" />
+        <div className="grid-overlay" />
+      </div>
+
       {screen === 'menu' && (
         <div className="menu-screen">
           <h1>GREY STRATUM</h1>
@@ -187,32 +193,54 @@ const App = () => {
       )}
 
       {screen === 'game' && gameState && (
-        <div className="game-layout">
-          <aside className="sidebar">
-            <CharacterCard character={gameState.character} shade={gameState.shade} />
-            <ShadeBar value={gameState.shade} size="compact" />
-          </aside>
-          
-          <main className="narrative">
-            <NarrativePanel
-              node={currentNode}
-              gameState={gameState}
-              onChoice={handleChoice}
-              onExamine={handleExamine}
-              systemOutput={systemOutput}
-              commandResponse={commandResponse}
-              isProcessing={isProcessing}
-            />
-            <CommandBar
-              onCommand={handleCommand}
-              onOpenInventory={() => setShowInventory(true)}
-              onOpenJournal={() => setShowJournal(true)}
-              onOpenHelp={() => setShowHelp(true)}
-              onBack={handleBack}
-              canGoBack={navHistory.length > 0}
-            />
+        <>
+          <header className="game-header">
+            <div className="header-brand">GREY STRATUM</div>
+            <div className="header-subtitle">TERMINAL v2.1.85</div>
+            <div className="header-actions">
+              <button className="header-btn" onClick={() => setShowInventory(true)}>INVENTORY</button>
+              <button className="header-btn" onClick={() => setShowJournal(true)}>JOURNAL</button>
+              <button className="header-btn" onClick={() => setShowHelp(true)}>HELP</button>
+            </div>
+          </header>
+
+          <main className="game-main">
+            <aside className="card-panel">
+              <CharacterCard character={gameState.character} shade={gameState.shade} />
+              <ShadeBar value={gameState.shade} size="compact" />
+            </aside>
+            
+            <section className="narrative-section">
+              <NarrativePanel
+                node={currentNode}
+                gameState={gameState}
+                onChoice={handleChoice}
+                onExamine={handleExamine}
+                systemOutput={systemOutput}
+                commandResponse={commandResponse}
+                isProcessing={isProcessing}
+              />
+              <CommandBar
+                onCommand={handleCommand}
+                onOpenInventory={() => setShowInventory(true)}
+                onOpenJournal={() => setShowJournal(true)}
+                onOpenHelp={() => setShowHelp(true)}
+                onBack={handleBack}
+                canGoBack={navHistory.length > 0}
+              />
+            </section>
           </main>
-        </div>
+
+          <footer className="game-footer">
+            <div className="footer-status">
+              <span className="status-indicator online" />
+              SYSTEM ONLINE
+            </div>
+            <div className="footer-coords">
+              {currentNode?.location || 'UNKNOWN SECTOR'}
+            </div>
+          </footer>
+        </>
       )}
 
       {/* Modals */}

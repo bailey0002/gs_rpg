@@ -21,84 +21,94 @@ const CharacterCard = ({ character, shade = 0 }) => {
   };
 
   return (
-    <div className="card">
-      <div className="card-top">
-        <span>◇ GREY STRATUM</span>
-        <span>v{character.version || '1.0'}</span>
+    <div className="character-card">
+      <div className="card-header">
+        <div className="card-brand">◇ GREY STRATUM</div>
+        <div className="card-version">v{character.version || '1.0'}</div>
       </div>
       
       {/* Portrait */}
-      {!imageError && character.portraitPath ? (
-        <img 
-          className="portrait" 
-          src={character.portraitPath} 
-          alt={character.name}
-          onError={() => setImageError(true)}
-        />
-      ) : (
-        <div className="portrait-placeholder">?</div>
-      )}
+      <div className="card-portrait">
+        {!imageError && character.portraitPath ? (
+          <img 
+            src={character.portraitPath} 
+            alt={character.name}
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <div className="portrait-placeholder">
+            <span>?</span>
+          </div>
+        )}
+        <div className="portrait-scanlines" />
+      </div>
       
       {/* Name & Class */}
-      <div className="card-name">{character.name}</div>
-      <div className="card-class">{character.className} • {character.role}</div>
+      <div className="card-info">
+        <h2 className="card-name">{character.name}</h2>
+        <div className="card-class">{character.className} • {character.role}</div>
+      </div>
       
-      {/* Bars */}
-      <div className="bars">
+      {/* Stats Section */}
+      <div className="card-stats-section">
         {/* HP Bar */}
-        <div className="bar">
-          <span>HP</span>
-          <span>{character.hp}/{character.maxHp}</span>
-        </div>
-        <div className="bar-track">
-          <div 
-            className="bar-fill hp" 
-            style={{ width: `${hpPercent}%`, backgroundColor: getHpColor() }} 
-          />
+        <div className="stat-bar">
+          <div className="stat-bar-label">
+            <span>HP</span>
+            <span>{character.hp}/{character.maxHp}</span>
+          </div>
+          <div className="stat-bar-track">
+            <div 
+              className="stat-bar-fill hp-fill" 
+              style={{ width: `${hpPercent}%`, backgroundColor: getHpColor() }} 
+            />
+          </div>
         </div>
         
         {/* Mana Bar (if character has mana) */}
         {character.maxMana > 0 && (
-          <>
-            <div className="bar">
+          <div className="stat-bar">
+            <div className="stat-bar-label">
               <span>MANA</span>
               <span>{character.mana}/{character.maxMana}</span>
             </div>
-            <div className="bar-track">
+            <div className="stat-bar-track">
               <div 
-                className="bar-fill mana" 
+                className="stat-bar-fill mana-fill" 
                 style={{ width: `${manaPercent}%` }} 
               />
             </div>
-          </>
+          </div>
         )}
         
         {/* XP Bar */}
-        <div className="bar">
-          <span>XP</span>
-          <span>{character.xp || 0}/100</span>
+        <div className="stat-bar">
+          <div className="stat-bar-label">
+            <span>XP</span>
+            <span>{character.xp || 0}/100</span>
+          </div>
+          <div className="stat-bar-track">
+            <div 
+              className="stat-bar-fill xp-fill" 
+              style={{ width: `${(character.xp || 0)}%` }} 
+            />
+          </div>
         </div>
-        <div className="bar-track">
-          <div 
-            className="bar-fill xp" 
-            style={{ width: `${(character.xp || 0)}%` }} 
-          />
-        </div>
-      </div>
-      
-      {/* Stats */}
-      <div className="stats-row">
-        <div>
-          <span>PHY</span>
-          <b>{character.stats?.phy || 0}</b>
-        </div>
-        <div>
-          <span>INT</span>
-          <b>{character.stats?.int || 0}</b>
-        </div>
-        <div>
-          <span>DEF</span>
-          <b>{character.stats?.def || 0}</b>
+        
+        {/* Core Stats */}
+        <div className="core-stats">
+          <div className="stat">
+            <span className="stat-label">PHY</span>
+            <span className="stat-value">{character.stats?.phy || 0}</span>
+          </div>
+          <div className="stat">
+            <span className="stat-label">INT</span>
+            <span className="stat-value">{character.stats?.int || 0}</span>
+          </div>
+          <div className="stat">
+            <span className="stat-label">DEF</span>
+            <span className="stat-value">{character.stats?.def || 0}</span>
+          </div>
         </div>
       </div>
       

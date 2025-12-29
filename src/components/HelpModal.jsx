@@ -25,56 +25,56 @@ const HelpModal = ({ onClose }) => {
           <div className="help-section">
             <h3>EXPLORATION</h3>
             <div className="help-command">
-              <span className="cmd">LOOK</span> or <span className="cmd">L</span>
-              <span className="desc">Examine your surroundings</span>
+              <span className="help-cmd">LOOK</span> or <span className="help-cmd">L</span>
+              <span className="help-desc">Examine your surroundings</span>
             </div>
             <div className="help-command">
-              <span className="cmd">LOOK [item]</span>
-              <span className="desc">Examine a specific item</span>
+              <span className="help-cmd">LOOK [item]</span>
+              <span className="help-desc">Examine a specific item</span>
             </div>
             <div className="help-command">
-              <span className="cmd">GET [item]</span> or <span className="cmd">TAKE [item]</span>
-              <span className="desc">Pick up an item</span>
+              <span className="help-cmd">GET [item]</span> or <span className="help-cmd">TAKE [item]</span>
+              <span className="help-desc">Pick up an item</span>
             </div>
           </div>
           
           <div className="help-section">
             <h3>NAVIGATION</h3>
             <div className="help-command">
-              <span className="cmd">BACK</span> or <span className="cmd">B</span>
-              <span className="desc">Return to previous location</span>
+              <span className="help-cmd">BACK</span> or <span className="help-cmd">B</span>
+              <span className="help-desc">Return to previous location</span>
             </div>
           </div>
           
           <div className="help-section">
             <h3>INVENTORY</h3>
             <div className="help-command">
-              <span className="cmd">INVENTORY</span> or <span className="cmd">I</span>
-              <span className="desc">Open your inventory</span>
+              <span className="help-cmd">INVENTORY</span> or <span className="help-cmd">I</span>
+              <span className="help-desc">Open your inventory</span>
             </div>
             <div className="help-command">
-              <span className="cmd">USE [item]</span>
-              <span className="desc">Use a consumable item</span>
+              <span className="help-cmd">USE [item]</span>
+              <span className="help-desc">Use a consumable item</span>
             </div>
             <div className="help-command">
-              <span className="cmd">COMBINE</span>
-              <span className="desc">Combine two items</span>
+              <span className="help-cmd">COMBINE</span>
+              <span className="help-desc">Combine two items</span>
             </div>
           </div>
           
           <div className="help-section">
             <h3>JOURNAL</h3>
             <div className="help-command">
-              <span className="cmd">JOURNAL</span> or <span className="cmd">J</span>
-              <span className="desc">Open your Echo Journal</span>
+              <span className="help-cmd">JOURNAL</span> or <span className="help-cmd">J</span>
+              <span className="help-desc">Open your Echo Journal</span>
             </div>
           </div>
           
           <div className="help-section">
             <h3>SYSTEM</h3>
             <div className="help-command">
-              <span className="cmd">HELP</span> or <span className="cmd">?</span>
-              <span className="desc">Show this help screen</span>
+              <span className="help-cmd">HELP</span> or <span className="help-cmd">?</span>
+              <span className="help-desc">Show this help screen</span>
             </div>
           </div>
           
