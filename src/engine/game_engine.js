@@ -10,9 +10,9 @@
 // =============================================================================
 
 // Acts
-import { ACT_1_NODES, ACT_1_META, getNode, getAvailableChoices } from './data/acts/act1_circuit.js';
+import { ACT_1_NODES, ACT_1_META, getNode, getAvailableChoices } from '../data/acts/act1_circuit.js';
 // Future acts would be imported similarly:
-// import { ACT_2_NODES, ACT_2_META } from './data/acts/act2_midway.js';
+// import { ACT_2_NODES, ACT_2_META } from '../data/acts/act2_midway.js';
 
 // Systems
 import { 
@@ -21,7 +21,7 @@ import {
   addInsight, 
   getHint,
   ENTRY_TEMPLATES 
-} from './data/systems/echo_journal.js';
+} from '../data/systems/echo_journal.js';
 
 // Content
 import { 
@@ -29,7 +29,7 @@ import {
   getItem, 
   canCombine, 
   getCombinationResult 
-} from './data/content/items.js';
+} from '../data/content/items.js';
 
 // =============================================================================
 // ACT REGISTRY
