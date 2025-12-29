@@ -153,6 +153,14 @@ const App = () => {
     }
   }, [navHistory]);
 
+  // Handle return to menu
+  const handleReturnToMenu = useCallback(() => {
+    if (window.confirm('Return to menu? Your game is auto-saved.')) {
+      setScreen('menu');
+      setNavHistory([]);
+    }
+  }, []);
+
   // Item combination
   const handleCombineItems = (item1, item2) => {
     const result = combineItems(gameState, item1, item2);
@@ -198,6 +206,7 @@ const App = () => {
             <div className="header-brand">GREY STRATUM</div>
             <div className="header-subtitle">TERMINAL v2.1.85</div>
             <div className="header-actions">
+              <button className="header-btn" onClick={handleReturnToMenu}>MENU</button>
               <button className="header-btn" onClick={() => setShowInventory(true)}>INVENTORY</button>
               <button className="header-btn" onClick={() => setShowJournal(true)}>JOURNAL</button>
               <button className="header-btn" onClick={() => setShowHelp(true)}>HELP</button>
