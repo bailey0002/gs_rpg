@@ -2210,3 +2210,560 @@ body {
   box-shadow: 0 0 6px var(--green);
 }
 
+/* ========================================
+   HINT SYSTEM
+   ======================================== */
+
+.hint-whisper {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 170, 0, 0.05);
+  border-left: 2px solid var(--amber);
+  border-radius: 0 4px 4px 0;
+  animation: hint-fade-in 0.5s ease-out;
+}
+
+@keyframes hint-fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.hint-icon {
+  color: var(--amber);
+  font-size: 1rem;
+  flex-shrink: 0;
+  animation: hint-pulse 2s ease-in-out infinite;
+}
+
+@keyframes hint-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.hint-text {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--amber);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* ========================================
+   REVISIT INDICATOR
+   ======================================== */
+
+.revisit-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  padding: 0.25rem 0;
+  opacity: 0.5;
+}
+
+.revisit-icon {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.revisit-text {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ========================================
+   QUICK START BUTTON
+   ======================================== */
+
+.quick-start-btn {
+  background: transparent !important;
+  border: 1px dashed var(--cyan-dim) !important;
+  color: var(--cyan-dim) !important;
+}
+
+.quick-start-btn:hover {
+  border-style: solid !important;
+  color: var(--cyan) !important;
+  background: rgba(0, 240, 255, 0.05) !important;
+}
+
+.menu-quick-start-hint {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 1rem;
+  letter-spacing: 0.05em;
+}
+
+/* ========================================
+   DIEGETIC ERROR STYLING
+   ======================================== */
+
+.command-response {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  background: rgba(0, 240, 255, 0.03);
+  border-left: 2px solid var(--cyan-dim);
+  border-radius: 0 4px 4px 0;
+}
+
+.response-text {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--text-normal);
+  line-height: 1.6;
+}
+
+/* ========================================
+   MOBILE RESPONSIVE STYLES
+   ======================================== */
+
+/* Tablet and below */
+@media screen and (max-width: 1024px) {
+  .game-main {
+    grid-template-columns: 280px 1fr;
+  }
+  
+  /* Hide third column on tablet */
+  .game-main > *:nth-child(3) {
+    display: none;
+  }
+}
+
+/* Mobile devices */
+@media screen and (max-width: 768px) {
+  /* Prevent horizontal overflow */
+  html, body, #root {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+  
+  .game-container {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  
+  /* Header - stack on mobile */
+  .game-header {
+    flex-wrap: wrap;
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+  }
+  
+  .header-brand {
+    font-size: 1rem;
+    letter-spacing: 0.15em;
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .header-subtitle {
+    display: none;
+  }
+  
+  .header-actions {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    justify-content: flex-end;
+  }
+  
+  .header-btn {
+    font-size: 0.6rem;
+    padding: 0.4rem 0.6rem;
+    letter-spacing: 0.05em;
+  }
+  
+  /* Main layout - single column on mobile */
+  .game-main {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Card panel - compact on mobile */
+  .card-panel {
+    padding: 0.75rem;
+    flex-shrink: 0;
+    max-height: none;
+    overflow: visible;
+  }
+  
+  /* Character card - horizontal compact layout */
+  .character-card {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    max-height: 120px;
+  }
+  
+  .card-header {
+    display: none;
+  }
+  
+  .card-portrait {
+    width: 100px;
+    min-width: 100px;
+    height: 120px;
+    flex-shrink: 0;
+  }
+  
+  .card-portrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .portrait-placeholder {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .card-body {
+    flex: 1;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+  }
+  
+  .card-name {
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .card-class {
+    font-size: 0.65rem;
+  }
+  
+  .card-stats-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.5rem;
+    margin-top: 0.25rem;
+  }
+  
+  .stat-row {
+    flex: 0 0 auto;
+    min-width: 60px;
+  }
+  
+  .stat-label {
+    font-size: 0.55rem;
+  }
+  
+  .stat-bar {
+    height: 4px;
+  }
+  
+  /* Shade bar compact on mobile */
+  .shade-bar {
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+  }
+  
+  .shade-bar.compact {
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .shade-bar-labels {
+    font-size: 0.55rem;
+  }
+  
+  /* Narrative section - takes remaining space */
+  .narrative-section {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  .narrative-panel {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 1rem;
+  }
+  
+  .narrative-location {
+    font-size: 0.7rem;
+    padding: 0.4rem 0.75rem;
+  }
+  
+  .narrative-text {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  
+  /* Visible items */
+  .visible-items {
+    margin: 0.75rem 0;
+  }
+  
+  .visible-items-label {
+    font-size: 0.65rem;
+  }
+  
+  .visible-items-list {
+    gap: 0.25rem;
+    flex-wrap: wrap;
+  }
+  
+  .visible-item-btn {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
+  
+  /* Choices */
+  .choices-section {
+    margin-top: 1rem;
+  }
+  
+  .choices-header {
+    font-size: 0.65rem;
+  }
+  
+  .choices-list {
+    gap: 0.5rem;
+  }
+  
+  .choice-button {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+  }
+  
+  .choice-key {
+    font-size: 0.7rem;
+    min-width: 1.5rem;
+  }
+  
+  /* Command bar - fixed at bottom */
+  .command-bar {
+    flex-shrink: 0;
+    padding: 0.5rem;
+    background: var(--bg-panel);
+    border-top: 1px solid var(--border-subtle);
+  }
+  
+  .command-form {
+    margin-bottom: 0.5rem;
+  }
+  
+  .command-form input {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+    padding: 0.6rem;
+  }
+  
+  .quick-buttons {
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  
+  .quick-buttons button {
+    width: 40px;
+    height: 40px;
+    font-size: 0.9rem;
+  }
+  
+  /* Footer - compact */
+  .game-footer {
+    padding: 0.5rem 1rem;
+    font-size: 0.65rem;
+  }
+  
+  /* Modals - full screen on mobile */
+  .modal-overlay {
+    padding: 0;
+  }
+  
+  .modal {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 0;
+    margin: 0;
+  }
+  
+  .modal-header {
+    padding: 0.75rem 1rem;
+  }
+  
+  .modal-body {
+    padding: 1rem;
+  }
+  
+  /* Hints and responses */
+  .hint-whisper,
+  .command-response {
+    padding: 0.5rem 0.75rem;
+    margin: 0.5rem 0;
+  }
+  
+  .hint-text,
+  .response-text {
+    font-size: 0.85rem;
+  }
+}
+
+/* Small phones */
+@media screen and (max-width: 480px) {
+  .header-brand {
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+  }
+  
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .header-btn {
+    flex: 1;
+    text-align: center;
+    padding: 0.35rem 0.4rem;
+  }
+  
+  .card-portrait {
+    width: 80px;
+    min-width: 80px;
+    height: 100px;
+  }
+  
+  .character-card {
+    max-height: 100px;
+  }
+  
+  .narrative-panel {
+    padding: 0.75rem;
+  }
+  
+  .narrative-text {
+    font-size: 0.85rem;
+  }
+  
+  .choice-button {
+    padding: 0.6rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* iOS-specific fixes */
+@supports (-webkit-touch-callout: none) {
+  /* Fix for iOS viewport height */
+  .game-container {
+    min-height: -webkit-fill-available;
+  }
+  
+  /* Prevent iOS bounce/overscroll */
+  .game-main {
+    overscroll-behavior: contain;
+  }
+  
+  .narrative-panel {
+    overscroll-behavior: contain;
+  }
+  
+  /* Fix for iOS input zoom */
+  input, textarea, select {
+    font-size: 16px;
+  }
+  
+  /* Hide iOS video controls/play button */
+  .menu-video-bg::-webkit-media-controls {
+    display: none !important;
+  }
+  
+  .menu-video-bg::-webkit-media-controls-start-playback-button {
+    display: none !important;
+    -webkit-appearance: none;
+  }
+  
+  .menu-video-bg::-webkit-media-controls-panel {
+    display: none !important;
+  }
+}
+
+/* Video background styles */
+.menu-video-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.menu-video-bg::-webkit-media-controls {
+  display: none !important;
+}
+
+.menu-video-bg::-webkit-media-controls-start-playback-button {
+  display: none !important;
+  -webkit-appearance: none;
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: max(0px)) {
+  .game-header {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+  }
+  
+  .game-footer {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+  
+  .command-bar {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Landscape phone orientation */
+@media screen and (max-width: 900px) and (orientation: landscape) {
+  .game-main {
+    flex-direction: row;
+  }
+  
+  .card-panel {
+    width: 200px;
+    max-width: 200px;
+    overflow-y: auto;
+  }
+  
+  .character-card {
+    flex-direction: column;
+    max-height: none;
+  }
+  
+  .card-portrait {
+    width: 100%;
+    height: 120px;
+  }
+  
+  .narrative-section {
+    flex: 1;
+  }
+}
+
