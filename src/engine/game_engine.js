@@ -11,6 +11,24 @@
 
 // Acts
 import { ACT_1_NODES, ACT_1_META, getNode, getAvailableChoices } from '../data/acts/act1_circuit.js';
+
+// Event Bus (for provenance tracking)
+import {
+  createEventLog,
+  emitChoice,
+  emitShadeShift,
+  emitItemAcquired,
+  emitRelationshipChange,
+  emitFlagSet,
+  emitNodeEntered,
+  emitHintShown,
+  EVENT_TYPES,
+  createEvent,
+  appendEvent,
+} from './event_bus.js';
+
+// Text Variation (for backtracking freshness)
+import { getLocationText } from './text_variation.js';
 // Future acts would be imported similarly:
 // import { ACT_2_NODES, ACT_2_META } from '../data/acts/act2_midway.js';
 
@@ -50,51 +68,67 @@ const ACT_REGISTRY = {
 // GAME STATE STRUCTURE
 // =============================================================================
 
-export const createInitialGameState = (character) => ({
-  // Character data
-  character: {
-    ...character,
-    marks: 0,
-    debt: 0
-  },
+export const createInitialGameState = (character) => {
+  const initialState = {
+    // Character data
+    character: {
+      ...character,
+      marks: 0,
+      debt: 0
+    },
+    
+    // Current position
+    currentAct: 'act1',
+    currentNodeId: ACT_REGISTRY.act1.meta.startNode,
+    
+    // Shade tracking
+    shade: 0,
+    
+    // Inventory (array of { itemId, quantity })
+    inventory: [],
+    
+    // Echo Journal
+    journal: createJournalState(),
+    
+    // Flags (story state, consequences)
+    flags: {},
+    
+    // Relationships
+    relationships: {},
+    
+    // Subplots activated
+    subplots: [],
+    
+    // Statistics
+    stats: {
+      choicesMade: 0,
+      combatsWon: 0,
+      puzzlesSolved: 0,
+      itemsFound: 0,
+      secretsDiscovered: 0
+    },
+    
+    // Visit tracking (for textural variation)
+    visitCounts: {},
+    
+    // Scene timing (for hints)
+    sceneEnteredAt: Date.now(),
+    
+    // Event log (for provenance/TCP)
+    eventLog: [],
+    
+    // Play history (legacy, kept for compatibility)
+    history: []
+  };
   
-  // Current position
-  currentAct: 'act1',
-  currentNodeId: ACT_REGISTRY.act1.meta.startNode,
+  // Initialize event log with game start
+  initialState.eventLog = createEventLog(initialState);
   
-  // Shade tracking
-  shade: 0,
+  // Track first node visit
+  initialState.visitCounts[initialState.currentNodeId] = 1;
   
-  // Inventory (array of { itemId, quantity })
-  inventory: [],
-  
-  // Echo Journal
-  journal: createJournalState(),
-  
-  // Flags (story state, consequences)
-  flags: {},
-  
-  // Relationships
-  relationships: {},
-  
-  // Subplots activated
-  subplots: [],
-  
-  // Statistics
-  stats: {
-    choicesMade: 0,
-    combatsWon: 0,
-    puzzlesSolved: 0,
-    itemsFound: 0,
-    secretsDiscovered: 0
-  },
-  
-  // Scene timing (for hints)
-  sceneEnteredAt: Date.now(),
-  
-  // Play history
-  history: []
-});
+  return initialState;
+};
 
 // =============================================================================
 // CORE ENGINE FUNCTIONS
@@ -120,10 +154,16 @@ export const processChoice = (gameState, choiceId) => {
   if (!choice) return gameState;
   
   let newState = { ...gameState };
+  let eventLog = [...newState.eventLog];
+  
+  // Track old shade for event emission
+  const oldShade = newState.shade;
   
   // Apply Shade change
   if (choice.shadeChange) {
     newState.shade = Math.max(-10, Math.min(10, newState.shade + choice.shadeChange));
+    // Emit shade shift event
+    eventLog = emitShadeShift(eventLog, newState, oldShade, newState.shade, `choice:${choiceId}`);
   }
   
   // Apply mana cost
@@ -134,9 +174,11 @@ export const processChoice = (gameState, choiceId) => {
     };
   }
   
-  // Apply consequences
+  // Apply consequences (with event emission)
   if (choice.consequence) {
-    newState = applyConsequence(newState, choice.consequence);
+    const result = applyConsequenceWithEvents(newState, choice.consequence, eventLog);
+    newState = result.gameState;
+    eventLog = result.eventLog;
   }
   
   // Add journal entry
@@ -151,7 +193,10 @@ export const processChoice = (gameState, choiceId) => {
     newState.journal = addInsight(newState.journal, choice.insight);
   }
   
-  // Update history
+  // Emit choice event
+  eventLog = emitChoice(eventLog, newState, choiceId, gameState.currentNodeId, choice.consequence);
+  
+  // Update history (legacy)
   newState.history = [...newState.history, {
     nodeId: gameState.currentNodeId,
     choiceId,
@@ -162,6 +207,16 @@ export const processChoice = (gameState, choiceId) => {
   if (choice.nextNodeId) {
     newState.currentNodeId = choice.nextNodeId;
     newState.sceneEnteredAt = Date.now();
+    
+    // Track visit count
+    const currentVisits = newState.visitCounts[choice.nextNodeId] || 0;
+    newState.visitCounts = {
+      ...newState.visitCounts,
+      [choice.nextNodeId]: currentVisits + 1
+    };
+    
+    // Emit node entered event
+    eventLog = emitNodeEntered(eventLog, newState, choice.nextNodeId, currentVisits + 1);
   }
   
   // Increment stats
@@ -169,6 +224,9 @@ export const processChoice = (gameState, choiceId) => {
     ...newState.stats,
     choicesMade: newState.stats.choicesMade + 1
   };
+  
+  // Update event log
+  newState.eventLog = eventLog;
   
   return newState;
 };
@@ -245,11 +303,72 @@ const applyConsequence = (gameState, consequence) => {
   return newState;
 };
 
+/**
+ * Apply consequence with event emission (for provenance tracking)
+ */
+const applyConsequenceWithEvents = (gameState, consequence, eventLog) => {
+  let newState = { ...gameState };
+  let newEventLog = [...eventLog];
+  
+  // Set flags
+  if (consequence.flag) {
+    newState.flags = { ...newState.flags, [consequence.flag]: true };
+    newEventLog = emitFlagSet(newEventLog, newState, consequence.flag);
+  }
+  
+  // Update relationships
+  const relationshipKeys = Object.keys(consequence).filter(k => k.endsWith('Relation'));
+  relationshipKeys.forEach(key => {
+    const npcId = key.replace('Relation', '');
+    const oldValue = newState.relationships[npcId] || 0;
+    const newValue = oldValue + consequence[key];
+    newState.relationships = {
+      ...newState.relationships,
+      [npcId]: newValue
+    };
+    newEventLog = emitRelationshipChange(newEventLog, newState, npcId, oldValue, newValue);
+  });
+  
+  // Add subplot
+  if (consequence.subplot) {
+    if (!newState.subplots.includes(consequence.subplot)) {
+      newState.subplots = [...newState.subplots, consequence.subplot];
+      // Emit subplot activation event
+      const event = createEvent(EVENT_TYPES.SUBPLOT_ACTIVATED, {
+        subplot: consequence.subplot
+      }, newState);
+      newEventLog = appendEvent(newEventLog, event);
+    }
+  }
+  
+  // Modify debt
+  if (consequence.debt !== undefined) {
+    const oldDebt = newState.character.debt;
+    if (consequence.debt === 0) {
+      newState.character = { ...newState.character, debt: 0 };
+    } else {
+      newState.character = { 
+        ...newState.character, 
+        debt: newState.character.debt + consequence.debt 
+      };
+    }
+    // Emit debt change event
+    const event = createEvent(EVENT_TYPES.DEBT_CHANGED, {
+      oldDebt,
+      newDebt: newState.character.debt,
+      delta: newState.character.debt - oldDebt
+    }, newState);
+    newEventLog = appendEvent(newEventLog, event);
+  }
+  
+  return { gameState: newState, eventLog: newEventLog };
+};
+
 // =============================================================================
 // INVENTORY FUNCTIONS
 // =============================================================================
 
-export const addItemToInventory = (gameState, itemId, quantity = 1) => {
+export const addItemToInventory = (gameState, itemId, quantity = 1, source = 'unknown') => {
   const item = getItem(itemId);
   if (!item) return gameState;
   
@@ -268,9 +387,14 @@ export const addItemToInventory = (gameState, itemId, quantity = 1) => {
     newInventory.push({ itemId, quantity: item.stackable ? quantity : 1 });
   }
   
+  // Emit item acquired event
+  let eventLog = [...(gameState.eventLog || [])];
+  eventLog = emitItemAcquired(eventLog, gameState, itemId, source);
+  
   return {
     ...gameState,
     inventory: newInventory,
+    eventLog,
     stats: {
       ...gameState.stats,
       itemsFound: gameState.stats.itemsFound + 1
@@ -446,6 +570,28 @@ export const getActProgress = (gameState) => {
     actName: act.meta.name,
     theme: act.meta.theme,
     centralQuestion: act.meta.centralQuestion
+  };
+};
+
+// =============================================================================
+// TEXTURAL VARIATION
+// =============================================================================
+
+/**
+ * Get the current node with textural variation applied for revisits
+ */
+export const getNodeWithVariation = (gameState) => {
+  const node = getCurrentNode(gameState);
+  if (!node) return null;
+  
+  const visitCount = gameState.visitCounts?.[gameState.currentNodeId] || 1;
+  const variedText = getLocationText(node, visitCount, gameState);
+  
+  return {
+    ...node,
+    text: variedText,
+    visitCount, // Include for UI reference
+    isRevisit: visitCount > 1
   };
 };
 
