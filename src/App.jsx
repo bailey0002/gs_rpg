@@ -20,13 +20,21 @@ import HelpModal from './components/HelpModal.jsx';
 import {
   createInitialGameState,
   getCurrentNode,
+  getNodeWithVariation,
   processChoice,
   advanceNarrative,
   addItemToInventory,
   combineItems,
   saveGame,
   loadGame,
+  checkForHint,
 } from './engine/game_engine.js';
+
+// Data
+import { createCharacterFromClass } from './data/classes/classLibrary.js';
+
+// Text variation for diegetic errors
+import { getCantSeeError, getCantTakeError } from './engine/text_variation.js';
 
 // Styles
 import './styles/GameUI.css';
@@ -47,6 +55,9 @@ const App = () => {
   // Navigation history for BACK command
   const [navHistory, setNavHistory] = useState([]);
 
+  // Hint system state
+  const [activeHint, setActiveHint] = useState(null);
+
   // Load saved game on mount
   useEffect(() => {
     const saved = loadGame();
@@ -63,8 +74,31 @@ const App = () => {
     }
   }, [gameState, screen]);
 
-  // Get current node
-  const currentNode = gameState ? getCurrentNode(gameState) : null;
+  // Hint system - check for hints periodically
+  useEffect(() => {
+    if (!gameState || screen !== 'game') return;
+    
+    const interval = setInterval(() => {
+      const hintResult = checkForHint(gameState);
+      if (hintResult) {
+        setActiveHint(hintResult.hint);
+        setGameState(prev => ({
+          ...prev,
+          journal: hintResult.updatedJournal
+        }));
+      }
+    }, 15000); // Check every 15 seconds
+    
+    return () => clearInterval(interval);
+  }, [gameState, screen]);
+
+  // Clear hint when node changes
+  useEffect(() => {
+    setActiveHint(null);
+  }, [gameState?.currentNodeId]);
+
+  // Get current node with textural variation for revisits
+  const currentNode = gameState ? getNodeWithVariation(gameState) : null;
 
   // Character creation complete
   const handleCharacterCreated = (character) => {
@@ -73,12 +107,23 @@ const App = () => {
     setScreen('game');
   };
 
+  // Quick Start - bypass character creation for immediate engagement
+  const handleQuickStart = () => {
+    const defaultChar = createCharacterFromClass('sentinel', 'Shifter', 's1');
+    if (defaultChar) {
+      const initialState = createInitialGameState(defaultChar);
+      setGameState(initialState);
+      setScreen('game');
+    }
+  };
+
   // Process story choice
   const handleChoice = useCallback((choiceId) => {
     if (!gameState || isProcessing) return;
     
     setIsProcessing(true);
     setCommandResponse(null);
+    setActiveHint(null); // Clear hint on action
     
     // Track for BACK navigation
     setNavHistory(prev => [...prev.slice(-9), gameState.currentNodeId]);
@@ -94,9 +139,10 @@ const App = () => {
     setIsProcessing(false);
   }, [gameState, isProcessing]);
 
-  // Handle command input
+  // Handle command input (with diegetic error messages)
   const handleCommand = useCallback((cmd) => {
     const node = currentNode;
+    setActiveHint(null); // Clear hint on command
     
     switch (cmd.type) {
       case 'look':
@@ -107,10 +153,11 @@ const App = () => {
           if (item) {
             setCommandResponse(item.text);
             if (item.action === 'take' && item.itemId) {
-              setGameState(prev => addItemToInventory(prev, item.itemId));
+              setGameState(prev => addItemToInventory(prev, item.itemId, 1, 'examine'));
             }
           } else {
-            setCommandResponse(`You don't see "${cmd.target}" here.`);
+            // Diegetic "can't see" error
+            setCommandResponse(getCantSeeError(cmd.target));
           }
         } else if (!cmd.target && node?.visibleItems?.length) {
           const items = node.visibleItems.map(i => i.name).join(', ');
@@ -126,10 +173,11 @@ const App = () => {
             i => i.name.toLowerCase().includes(cmd.target.toLowerCase()) && i.action === 'take'
           );
           if (item && item.itemId) {
-            setGameState(prev => addItemToInventory(prev, item.itemId));
+            setGameState(prev => addItemToInventory(prev, item.itemId, 1, 'take'));
             setCommandResponse(`Taken: ${item.name}`);
           } else {
-            setCommandResponse(`You can't take that.`);
+            // Diegetic "can't take" error
+            setCommandResponse(getCantTakeError());
           }
         }
         break;
@@ -195,6 +243,19 @@ const App = () => {
             loop
             muted
             playsInline
+            preload="auto"
+            webkit-playsinline="true"
+            x5-playsinline="true"
+            disablePictureInPicture
+            disableRemotePlayback
+            ref={(el) => {
+              // iOS requires programmatic play after user interaction or on load
+              if (el) {
+                el.play().catch(() => {
+                  // Autoplay blocked - video will show first frame
+                });
+              }
+            }}
             src={`/videos/bg-${Math.random() < 0.5 ? '1' : '2'}.mp4`}
           />
           <div className="menu-video-overlay" />
@@ -204,8 +265,10 @@ const App = () => {
             <h1>GREY STRATUM</h1>
             <div className="menu-buttons">
               <button onClick={() => setScreen('creator')}>NEW GAME</button>
+              <button onClick={handleQuickStart} className="quick-start-btn">QUICK START</button>
               {loadGame() && <button onClick={() => { setGameState(loadGame()); setScreen('game'); }}>CONTINUE</button>}
             </div>
+            <div className="menu-quick-start-hint">Quick Start: Play as a Sentinel named "Shifter"</div>
           </div>
         </div>
       )}
@@ -242,6 +305,7 @@ const App = () => {
                 systemOutput={systemOutput}
                 commandResponse={commandResponse}
                 isProcessing={isProcessing}
+                activeHint={activeHint}
               />
               <CommandBar
                 onCommand={handleCommand}
