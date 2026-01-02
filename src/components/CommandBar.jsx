@@ -2,9 +2,10 @@
 // GREY STRATUM — COMMAND BAR
 // /src/components/CommandBar.jsx
 // =============================================================================
-// Text parser for adventure game commands.
+// Text parser for adventure game commands with diegetic error messages.
 
 import React, { useState, useRef, useEffect } from 'react';
+import { getUnknownCommandError } from '../engine/text_variation.js';
 
 const CommandBar = ({ 
   onCommand, 
@@ -87,9 +88,10 @@ const CommandBar = ({
         break;
         
       default:
+        // Use diegetic (in-world) error message instead of generic
         onCommand({ 
           type: 'error', 
-          message: `I don't understand "${input.trim()}". Type HELP for commands.` 
+          message: getUnknownCommandError()
         });
     }
     

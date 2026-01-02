@@ -13,7 +13,8 @@ const NarrativePanel = ({
   onExamine, 
   systemOutput,
   commandResponse,
-  isProcessing 
+  isProcessing,
+  activeHint
 }) => {
   if (!node) {
     return (
@@ -110,6 +111,22 @@ const NarrativePanel = ({
       {commandResponse && (
         <div className="command-response">
           <div className="response-text">{commandResponse}</div>
+        </div>
+      )}
+      
+      {/* Graduated Hint Display */}
+      {activeHint && (
+        <div className="hint-whisper">
+          <span className="hint-icon">◈</span>
+          <span className="hint-text">{activeHint.text || activeHint}</span>
+        </div>
+      )}
+      
+      {/* Revisit Indicator */}
+      {node.isRevisit && (
+        <div className="revisit-indicator">
+          <span className="revisit-icon">↺</span>
+          <span className="revisit-text">You've been here before.</span>
         </div>
       )}
       
