@@ -21,7 +21,7 @@ const CharacterCard = ({ character, shade = 0 }) => {
   };
 
   return (
-    <div className="character-card">
+    <div className="character-card" data-name={character.name}>
       <div className="card-header">
         <div className="card-brand">◇ GREY STRATUM</div>
         <div className="card-version">v{character.version || '1.0'}</div>
@@ -41,6 +41,12 @@ const CharacterCard = ({ character, shade = 0 }) => {
           </div>
         )}
         <div className="portrait-scanlines" />
+      </div>
+      
+      {/* Mobile Stats - shown via CSS on small screens */}
+      <div className="mobile-stats">
+        <span className="hp">HP {character.hp}/{character.maxHp}</span>
+        {character.maxMana > 0 && <span className="mana">MP {character.mana}/{character.maxMana}</span>}
       </div>
       
       {/* Name & Class */}
