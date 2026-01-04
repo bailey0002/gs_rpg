@@ -1,12 +1,13 @@
 import React, { useEffect } from "react";
 
 export default function DecisionPulse({
-  isOpen,
+  isOpen = false,
   prompt = "",
   options = [],
   onChoose,
   onDismiss,
 }) {
+  // ESC to close
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e) => {
@@ -19,34 +20,30 @@ export default function DecisionPulse({
   if (!isOpen) return null;
 
   return (
-    <div className="decisionpulse-backdrop" role="dialog" aria-modal="true">
-      <div className="decisionpulse-card">
-        <div className="decisionpulse-header">
-          <div className="decisionpulse-title">DECISION PULSE</div>
-          <button className="decisionpulse-x" onClick={onDismiss} aria-label="Close decision pulse">
-            ×
-          </button>
+    <div className="pulse-overlay" role="dialog" aria-modal="true" aria-label="Decision">
+      <div className="pulse-panel">
+        <div className="pulse-header">
+          <div className="pulse-title">DECISION PULSE</div>
+          <button className="pulse-close" onClick={() => onDismiss?.()} aria-label="Close">×</button>
         </div>
 
-        <div className="decisionpulse-prompt">{prompt}</div>
+        {prompt ? <div className="pulse-prompt">{prompt}</div> : null}
 
-        <div className="decisionpulse-options">
+        <div className="pulse-options">
           {(options || []).map((opt) => (
             <button
-              key={opt.id || opt.label}
-              className={`decisionpulse-option ${opt.kind || ""}`}
+              key={opt?.id || opt?.label}
+              className={opt?.kind ? `pulse-option ${opt.kind}` : "pulse-option"}
               onClick={() => onChoose?.(opt)}
             >
-              <div className="decisionpulse-option-label">{opt.label}</div>
-              <div className="decisionpulse-option-impact">{opt.impact}</div>
+              <div className="pulse-option-label">{opt?.label || "Option"}</div>
+              {opt?.impact ? <div className="pulse-option-impact">{opt.impact}</div> : null}
             </button>
           ))}
         </div>
 
-        <div className="decisionpulse-footer">
-          <button className="decisionpulse-dismiss" onClick={onDismiss}>
-            Dismiss
-          </button>
+        <div className="pulse-footer">
+          <button className="pulse-dismiss" onClick={() => onDismiss?.()}>Dismiss</button>
         </div>
       </div>
     </div>
