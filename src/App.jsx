@@ -38,6 +38,9 @@ import { getCantSeeError, getCantTakeError } from './engine/text_variation.js';
 
 // Styles
 import './styles/GameUI.css';
+import HUDBar from "./components/HUDBar.jsx";
+import DecisionPulse from "./components/DecisionPulse.jsx";
+import OutcomeToast from "./components/OutcomeToast.jsx";
 
 const App = () => {
   // Core state
@@ -46,6 +49,43 @@ const App = () => {
   const [systemOutput, setSystemOutput] = useState(null);
   const [commandResponse, setCommandResponse] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+
+
+// HUD + decision pulse + outcome toast
+const [hud, setHud] = useState({ threat: 2, intel: 2, tempo: 2, comms: "SECURE" });
+const [pulseOpen, setPulseOpen] = useState(false);
+const [pulse, setPulse] = useState({ prompt: "", options: [] });
+const [toast, setToast] = useState(null);
+
+const triggerDecisionPulse = () => {
+  setPulse({
+    prompt: "Operational posture?",
+    options: [
+      { id: "recon", label: "Recon sweep", impact: "INTEL ↑, TEMPO ↓", delta: { intel: +1, tempo: -1 }, kind: "green",
+        outcomeLines: ["ISR sweep executed.", "Contacts mapped; tempo reduced."] },
+      { id: "push", label: "Push the line", impact: "TEMPO ↑, THREAT ↑", delta: { tempo: +1, threat: +1 }, kind: "amber",
+        outcomeLines: ["Advance ordered.", "Tempo gained; threat escalates."] },
+      { id: "hold", label: "Hold & fortify", impact: "THREAT ↓, TEMPO ↓", delta: { threat: -1, tempo: -1 }, kind: "green",
+        outcomeLines: ["Position hardened.", "Threat reduced; tempo slower."] },
+    ],
+  });
+  setPulseOpen(true);
+};
+
+const applyDecision = (opt) => {
+  const delta = opt?.delta || {};
+  setHud((h) => ({
+    threat: Math.max(0, Math.min(4, (h.threat ?? 0) + (delta.threat ?? 0))),
+    intel:  Math.max(0, Math.min(4, (h.intel ?? 0) + (delta.intel ?? 0))),
+    tempo:  Math.max(0, Math.min(4, (h.tempo ?? 0) + (delta.tempo ?? 0))),
+    comms:  opt?.comms || h.comms || "SECURE",
+  }));
+  setToast({
+    kind: opt?.kind || "amber",
+    title: "OUTCOME",
+    lines: opt?.outcomeLines || [opt?.label || "Decision executed.", opt?.impact || ""],
+  });
+};
 
   // Modal state
   const [showInventory, setShowInventory] = useState(false);
@@ -227,6 +267,9 @@ const App = () => {
   // Render based on screen
   return (
     <div className="game-container">
+      {screen === "game" ? (
+        <HUDBar threat={hud.threat} intel={hud.intel} tempo={hud.tempo} comms={hud.comms} />
+      ) : null}
       {/* Ambient Background */}
       <div className="ambient-bg">
         <div className="stars" />
@@ -313,6 +356,7 @@ const App = () => {
                 onOpenJournal={() => setShowJournal(true)}
                 onOpenHelp={() => setShowHelp(true)}
                 onBack={handleBack}
+                onDecision={() => triggerDecisionPulse()}
                 canGoBack={navHistory.length > 0}
               />
             </section>
