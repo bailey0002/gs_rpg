@@ -2862,3 +2862,157 @@ body {
   }
 }
 
+
+/* =========================
+   HUD / DECISION PULSE / TOAST
+   ========================= */
+.hudbar{
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(10,14,18,0.55);
+  backdrop-filter: blur(10px);
+}
+.hud-left{ display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+.hud-meter-label{
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  opacity: 0.75;
+  margin-bottom: 6px;
+}
+.hud-meter-bars{ display:flex; gap:4px; }
+.hud-bar{
+  width: 10px; height: 10px;
+  border-radius: 2px;
+  border: 1px solid rgba(255,255,255,0.20);
+  background: rgba(255,255,255,0.05);
+}
+.hud-bar.on{
+  background: rgba(46,208,255,0.65);
+  border-color: rgba(46,208,255,0.85);
+}
+.hud-right{ text-align:right; min-width:120px; }
+.hud-comms-label{
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  opacity: 0.75;
+  margin-bottom: 4px;
+}
+.hud-comms{
+  font-size: 12px;
+  letter-spacing: 0.10em;
+  opacity: 0.95;
+}
+
+.decisionpulse-backdrop{
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.decisionpulse-card{
+  width: min(560px, 96vw);
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(10,14,18,0.85);
+  backdrop-filter: blur(14px);
+  padding: 14px;
+}
+.decisionpulse-header{
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  margin-bottom: 10px;
+}
+.decisionpulse-title{
+  font-size: 11px;
+  letter-spacing: 0.20em;
+  opacity: 0.85;
+}
+.decisionpulse-x{
+  width: 32px; height: 32px;
+  border: 1px solid rgba(255,255,255,0.16);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.decisionpulse-prompt{
+  font-size: 14px;
+  margin: 8px 0 12px;
+  opacity: 0.95;
+}
+.decisionpulse-options{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.decisionpulse-option{
+  text-align: left;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.05);
+  cursor: pointer;
+}
+.decisionpulse-option:hover{ background: rgba(255,255,255,0.08); }
+.decisionpulse-option.green{ border-color: rgba(120,255,180,0.35); }
+.decisionpulse-option.amber{ border-color: rgba(255,210,120,0.35); }
+.decisionpulse-option-label{
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+.decisionpulse-option-impact{
+  font-size: 11px;
+  opacity: 0.75;
+  letter-spacing: 0.08em;
+}
+.decisionpulse-footer{
+  display:flex;
+  justify-content:flex-end;
+  margin-top: 12px;
+}
+.decisionpulse-dismiss{
+  padding: 8px 12px;
+  border: 1px solid rgba(255,255,255,0.16);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.outcometoast{
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 70;
+  width: min(360px, 92vw);
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(10,14,18,0.85);
+  backdrop-filter: blur(14px);
+  padding: 12px 12px 10px;
+}
+.outcometoast.green{ border-color: rgba(120,255,180,0.40); }
+.outcometoast.amber{ border-color: rgba(255,210,120,0.40); }
+.outcometoast-title{
+  font-size: 11px;
+  letter-spacing: 0.20em;
+  opacity: 0.85;
+  margin-bottom: 8px;
+}
+.outcometoast-line{
+  font-size: 12px;
+  opacity: 0.92;
+  margin-bottom: 4px;
+}
+
+.cmd-btn-decision{
+  letter-spacing: 0.18em;
+}
